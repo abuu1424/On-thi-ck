@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="vi" data-theme="dark">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>OOP C++ Exam Master · Luyện Thi Cuối Kỳ 4 Dạng Chuẩn FIT-HCMUS & 50 MCQs Tiếng Anh</title>
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:ital,wght@0,400;0,600;0,700;1,400&display=swap"
+    rel="stylesheet">
+
+  <!-- Stylesheet -->
+  <link rel="stylesheet" href="style.css" />
+</head>
+
+<body>
+
+  <!-- MAIN HEADER -->
+  <header class="main-header">
+    <div class="container">
+      <div class="header-content">
+        <a href="#" class="brand" id="brandLogo">
+          <div class="brand-icon">C++</div>
+          <div class="brand-text">
+            <h1>OOP EXAM MASTER <span class="badge-hcmus">FIT-HCMUS</span></h1>
+            <p>Trắc Nghiệm 50 Câu Tiếng Anh · Tự Luận 4 Dạng Chuẩn · Slide Tuần 2 → 8</p>
+          </div>
+        </a>
+
+        <!-- MAIN SECTION NAV PILLS -->
+        <div class="main-nav-switcher">
+          <button class="main-nav-btn active" id="btnNavMCQ">
+            <span>📝</span> <span>Trắc Nghiệm (50 MCQs)</span>
+          </button>
+          <button class="main-nav-btn" id="btnNavWritten">
+            <span>✍️</span> <span>Tự Luận & 4 Dạng Bài</span>
+          </button>
+        </div>
+
+        <div class="header-actions">
+          <!-- Timer -->
+          <div class="timer-box" title="Thời gian làm bài">
+            <span>⏱️</span>
+            <span id="timerDisplay">90:00</span>
+          </div>
+          <button id="timerBtn" class="btn btn-secondary btn-sm">▶ Bắt đầu</button>
+          <button id="resetTimerBtn" class="btn btn-outline btn-sm" title="Đặt lại đồng hồ">🔄</button>
+
+          <!-- Trap Cheatsheet Quick Modal Button -->
+          <button id="openTrapBtn" class="btn btn-outline btn-sm"
+            style="border-color:var(--warning); color:var(--warning);" title="Tra cứu 10 Bẫy Code Kinh Điển">
+            ⚡ 10 Bẫy Code
+          </button>
+
+          <!-- Theme Toggle -->
+          <button id="themeToggleBtn" class="btn btn-outline btn-sm" title="Chuyển đổi giao diện Sáng / Tối">
+            ☀️ <span>Sáng</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- =========================================================================
+       SECTION 1: TRẮC NGHIỆM TIẾNG ANH (50 MCQs)
+       ========================================================================= -->
+  <div id="mcqSection" class="section-view active">
+    
+    <!-- SUB-NAV / MCQ CONTROLS -->
+    <section class="exam-control-bar">
+      <div class="container">
+        <div class="control-bar-content">
+          <!-- Chapter Filter Pills -->
+          <div class="filter-chips-scroll" id="mcqChapterFilters">
+            <button class="filter-chip active" data-chapter="all">Tất cả 50 Câu</button>
+            <button class="filter-chip" data-chapter="ch5">Ch 5: Inheritance & Polymorphism (12)</button>
+            <button class="filter-chip" data-chapter="ch6">Ch 6: Relationships & File I/O (8)</button>
+            <button class="filter-chip" data-chapter="ch7">Ch 7: Templates & Exceptions (10)</button>
+            <button class="filter-chip" data-chapter="ch8">Ch 8 & Patterns: STL & Design (10)</button>
+            <button class="filter-chip" data-chapter="ch2_4">Ch 2-4: Core OOP & Memory (10)</button>
+          </div>
+
+          <!-- Mode & Submit -->
+          <div class="mode-toggles">
+            <div class="mode-pill" title="Chế độ học tập: Xem giải thích ngay / Chế độ thi: Làm xong nộp bài">
+              <button class="mode-pill-btn active" id="mcqModePracticeBtn">⚡ Luyện Tập</button>
+              <button class="mode-pill-btn" id="mcqModeExamBtn">📝 Thi Thử</button>
+            </div>
+
+            <button id="mcqSubmitBtn" class="btn btn-success btn-sm">
+              🏆 Nộp Bài & Chấm Điểm
+            </button>
+            <button id="mcqResetBtn" class="btn btn-outline btn-sm" title="Làm lại toàn bộ 50 câu">
+              🔄 Làm Lại
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- MAIN BODY MCQ -->
+    <main class="container" style="flex:1; margin-top:20px; margin-bottom:40px;">
+      
+      <!-- MCQ HERO INFO -->
+      <section class="exam-hero">
+        <div class="exam-hero-title">
+          <h2>50 ENGLISH MULTIPLE CHOICE QUESTIONS (MCQs)</h2>
+          <p>Bao quát toàn diện OOP C++ chuẩn quốc tế · Trọng tâm từ Chương 5 trở đi (Kế thừa, Đa hình, File I/O, Template, Exception, STL, Design Patterns) & Bổ trợ Chương 2-4.</p>
+        </div>
+        <div class="exam-hero-meta">
+          <div class="meta-stat">
+            <div class="stat-val" id="mcqAnsweredBadge" style="color:var(--cyan);">0 / 50</div>
+            <div class="stat-label">Đã hoàn thành</div>
+          </div>
+          <div class="meta-stat">
+            <div class="stat-val" id="mcqScoreBadge" style="color:var(--success);">0%</div>
+            <div class="stat-label">Độ chính xác</div>
+          </div>
+          <div class="meta-stat">
+            <div class="stat-val" style="color:var(--warning);">50 Câu</div>
+            <div class="stat-label">Tổng ngân hàng</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- DIFFICULTY & SEARCH BAR -->
+      <div class="mcq-toolbar-secondary">
+        <div class="difficulty-filter-group">
+          <span style="font-size:13px; font-weight:600; color:var(--text-muted);">Độ khó:</span>
+          <button class="diff-btn active" data-diff="all">Tất cả</button>
+          <button class="diff-btn" data-diff="easy">🟢 Easy (Cơ bản)</button>
+          <button class="diff-btn" data-diff="medium">🟡 Medium (Trung bình)</button>
+          <button class="diff-btn" data-diff="hard">🔴 Hard / Trap (Nâng cao)</button>
+        </div>
+        
+        <div class="mcq-search-box">
+          <input type="text" id="mcqSearchInput" placeholder="🔍 Tìm kiếm câu hỏi (vd: vtable, rule of three, dynamic_cast...)" />
+        </div>
+      </div>
+
+      <!-- DUAL COLUMN LAYOUT: CARDS + NAVIGATOR -->
+      <div class="mcq-layout-grid">
+        <!-- Main Questions Stream -->
+        <div class="mcq-cards-stream" id="mcqCardsContainer">
+          <!-- MCQ cards rendered here -->
+        </div>
+
+        <!-- Sticky Sidebar: Navigator Grid 1..50 -->
+        <aside class="mcq-sidebar">
+          <div class="sidebar-card">
+            <div class="sidebar-card-header">
+              <h4>🎯 Question Navigator</h4>
+              <span id="sidebarProgressText" style="font-size:12px; color:var(--text-muted);">0/50</span>
+            </div>
+            <div class="navigator-legend">
+              <span class="legend-item"><span class="dot dot-unanswered"></span> Chưa làm</span>
+              <span class="legend-item"><span class="dot dot-answered"></span> Đã chọn</span>
+              <span class="legend-item"><span class="dot dot-correct"></span> Đúng</span>
+              <span class="legend-item"><span class="dot dot-wrong"></span> Sai</span>
+            </div>
+            <div class="question-grid-container" id="mcqGridNavigator">
+              <!-- 50 question buttons rendered here -->
+            </div>
+          </div>
+
+          <!-- Quick Jump Chapters Box -->
+          <div class="sidebar-card" style="margin-top:16px;">
+            <div class="sidebar-card-header">
+              <h4>📚 Phân Bố Chương</h4>
+            </div>
+            <div class="chapter-stat-list">
+              <div class="ch-stat-row" onclick="window.filterMCQChapter('ch5')">
+                <span>Ch 5: Inheritance & Polymorphism</span>
+                <strong>12 câu</strong>
+              </div>
+              <div class="ch-stat-row" onclick="window.filterMCQChapter('ch6')">
+                <span>Ch 6: Relationships & File I/O</span>
+                <strong>8 câu</strong>
+              </div>
+              <div class="ch-stat-row" onclick="window.filterMCQChapter('ch7')">
+                <span>Ch 7: Templates & Exceptions</span>
+                <strong>10 câu</strong>
+              </div>
+              <div class="ch-stat-row" onclick="window.filterMCQChapter('ch8')">
+                <span>Ch 8 & Patterns: STL & Design</span>
+                <strong>10 câu</strong>
+              </div>
+              <div class="ch-stat-row" onclick="window.filterMCQChapter('ch2_4')">
+                <span>Ch 2-4: Core OOP, Memory & Static</span>
+                <strong>10 câu</strong>
+              </div>
+            </div>
+          </div>
+        </aside>
+      </div>
+
+    </main>
+  </div>
+
+
+  <!-- =========================================================================
+       SECTION 2: TỰ LUẬN & 4 DẠNG BÀI (FIT-HCMUS)
+       ========================================================================= -->
+  <div id="writtenSection" class="section-view" style="display:none;">
+    
+    <!-- SUB-NAV / CONTROLS -->
+    <section class="exam-control-bar">
+      <div class="container">
+        <div class="control-bar-content">
+          <!-- View Mode Switch: By Exam vs By 4-Types Bank -->
+          <div class="view-mode-pill">
+            <button class="view-mode-btn active" id="writtenModeExamBtn">📄 Theo Bộ Đề Chuẩn (Đề 1 → 5)</button>
+            <button class="view-mode-btn" id="writtenModeBankBtn">📚 Theo Kho 4 Dạng Bài (Dạng 1 → 4)</button>
+          </div>
+
+          <!-- Exam Selection Tabs (Visible in Exam mode) -->
+          <div class="exam-tabs" id="examTabs">
+            <!-- Dynamically populated from JS -->
+          </div>
+
+          <!-- Bank Category Pills (Visible in Bank mode) -->
+          <div class="bank-type-pills" id="bankTypePills" style="display:none;">
+            <button class="bank-pill-btn active" data-bank-type="theory">📖 Dạng 1: Lý Thuyết</button>
+            <button class="bank-pill-btn" data-bank-type="code_trace">🔍 Dạng 2: Đọc Code Đoán Output</button>
+            <button class="bank-pill-btn" data-bank-type="code_writing">💻 Dạng 3: Viết Code</button>
+            <button class="bank-pill-btn" data-bank-type="design_pattern">🏛️ Dạng 4: Thiết Kế Kiến Trúc</button>
+          </div>
+
+          <!-- Mode Toggles & Submit Action -->
+          <div class="mode-toggles">
+            <div class="mode-pill"
+              title="Chế độ học tập: Xem giải thích & đáp án ngay / Chế độ thi: Bấm giờ và nộp bài tính điểm">
+              <button class="mode-pill-btn active" id="modePracticeBtn">⚡ Luyện Tập</button>
+              <button class="mode-pill-btn" id="modeExamBtn">📝 Thi Thử (90p)</button>
+            </div>
+
+            <button id="submitExamBtn" class="btn btn-success btn-sm">
+              🏆 Nộp Bài & Chấm Điểm
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- MAIN BODY WRITTEN -->
+    <main class="container" style="flex:1; margin-top:20px; margin-bottom:40px;">
+
+      <!-- EXAM HERO INFO -->
+      <section class="exam-hero">
+        <div class="exam-hero-title">
+          <h2 id="examTitle">Đang tải đề thi...</h2>
+          <p id="examSubtitle">Cấu trúc chuẩn: C1 Lý thuyết (2đ) · C2 Đoán output (2đ) · C3 Viết code (3đ) · C4 Thiết kế
+            kiến trúc (3đ)</p>
+        </div>
+        <div class="exam-hero-meta">
+          <div class="meta-stat">
+            <div class="stat-val" id="examTimeBadge">90 Phút</div>
+            <div class="stat-label">Thời gian làm bài</div>
+          </div>
+          <div class="meta-stat">
+            <div class="stat-val" id="totalQuestionsBadge" style="color:var(--success);">4 Câu</div>
+            <div class="stat-label">Tổng số câu hỏi</div>
+          </div>
+          <div class="meta-stat">
+            <div class="stat-val" style="color:var(--warning);">10.0đ</div>
+            <div class="stat-label">Thang điểm chuẩn</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 4 QUESTION TYPES FILTER (In Exam View) -->
+      <div class="type-filter-bar" id="examTypeFilterBar">
+        <span style="font-size:13px; font-weight:600; color:var(--text-muted); margin-right:4px;">Phân loại dạng:</span>
+        <button class="filter-btn active" data-filter="all">Tất cả 4 Dạng (Trọn bộ đề)</button>
+        <button class="filter-btn" data-filter="theory">📖 Câu 1: Lý Thuyết</button>
+        <button class="filter-btn" data-filter="code_trace">🔍 Câu 2: Đọc Code → Output</button>
+        <button class="filter-btn" data-filter="code_writing">💻 Câu 3: Viết Code</button>
+        <button class="filter-btn" data-filter="design_pattern">🏛️ Câu 4: Thiết Kế Kiến Trúc</button>
+      </div>
+
+      <!-- QUESTIONS CONTAINER (EXAM & BANK) -->
+      <section id="questionsContainer">
+        <!-- Question cards will be rendered dynamically -->
+      </section>
+
+    </main>
+  </div>
+
+  <!-- MODAL: SỔ TAY 10 BẪY CODE KINH ĐIỂN -->
+  <div class="modal-overlay" id="trapModal">
+    <div class="modal-container">
+      <div class="modal-header">
+        <h3>⚡ Sổ Tay 10 Bẫy Code Kinh Điển (Hay Ra Thi FIT-HCMUS)</h3>
+        <button id="closeTrapBtn" class="btn btn-outline btn-sm">✕ Đóng</button>
+      </div>
+      <div style="padding:12px 24px; background:var(--bg-primary); border-bottom:1px solid var(--border-color);">
+        <input type="text" id="trapSearchInput"
+          placeholder="🔍 Tìm kiếm nhanh bẫy code (ví dụ: PhanSo t(), virtual destructor, copy constructor, stream, eof...)"
+          style="width:100%; padding:8px 12px; border-radius:var(--radius-sm); border:1px solid var(--border-color); background:var(--bg-card); color:var(--text-primary); font-size:13.5px; outline:none;" />
+      </div>
+      <div class="modal-body" id="trapListContainer">
+        <!-- Trap cards will be rendered here -->
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: KẾT QUẢ & TỔNG KẾT BÀI THI -->
+  <div class="modal-overlay" id="summaryModal">
+    <div class="modal-container" style="max-width:640px;">
+      <div class="modal-header">
+        <h3>📊 Bảng Điểm & Đánh Giá Kết Quả Bài Thi</h3>
+        <button id="closeSummaryBtn" class="btn btn-outline btn-sm">✕</button>
+      </div>
+      <div class="modal-body" id="summaryContent">
+        <!-- Summary results rendered here -->
+      </div>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <footer class="main-footer">
+    <div class="container">
+      <p>OOP C++ Final Exam Master · Khoa CNTT - Đại học Khoa Học Tự Nhiên ĐHQG-HCM (FIT-HCMUS)</p>
+      <p style="margin-top:4px; font-size:12px; color:var(--text-muted);">Hệ thống bám sát giáo trình Slide Tuần 2 → 8 · 50 MCQs Tiếng Anh & 4 Dạng Bài Tự Luận Chuẩn.</p>
+    </div>
+  </footer>
+
+  <!-- DATASETS -->
+  <script src="data/trap_cheatsheet.js"></script>
+  <script src="data/mcq_english_50.js"></script>
+  <script src="data/question_bank_4types.js"></script>
+  <script src="data/de1.js"></script>
+  <script src="data/de2.js"></script>
+  <script src="data/de3.js"></script>
+  <script src="data/de4.js"></script>
+  <script src="data/de5.js"></script>
+  <script src="data/exams.js"></script>
+
+  <!-- APPLICATION CORE -->
+  <script src="app.js"></script>
+</body>
+
+</html>
