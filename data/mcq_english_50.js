@@ -1,12 +1,13 @@
 /**
- * 50 ENGLISH MULTIPLE CHOICE QUESTIONS (MCQs) - ADVANCED OOP IN C++
- * Standard Curriculum for FIT-HCMUS Computer Science
- * Breakdown:
+ * 50 ENGLISH MULTIPLE CHOICE QUESTIONS (MCQs) - ADVANCED OOP IN C++ (FIT-HCMUS STANDARD)
+ * High-Difficulty Question Bank matching and exceeding the Official 2024-2025 Exam Caliber
+ * 
+ * Chapter Breakdown:
  *  - Chapter 5 (Inheritance & Polymorphism): 12 Questions (Q1 - Q12)
  *  - Chapter 6 (Relationships & File I/O): 8 Questions (Q13 - Q20)
  *  - Chapter 7 (Templates & Exceptions): 10 Questions (Q21 - Q30)
- *  - Chapter 8 & Design Patterns (STL & Patterns): 10 Questions (Q31 - Q40)
- *  - Chapters 2, 3, 4 (Core OOP, Memory, Rule of Three, Static): 10 Questions (Q41 - Q50)
+ *  - Chapter 8 & Design Patterns (STL & Enterprise Patterns): 10 Questions (Q31 - Q40)
+ *  - Chapters 2, 3, 4 (Core OOP, Memory, Static, Rule of Three): 10 Questions (Q41 - Q50)
  */
 
 var MCQ_ENGLISH_50 = [
@@ -18,42 +19,32 @@ var MCQ_ENGLISH_50 = [
     number: 1,
     chapter: "ch5",
     chapterName: "Chapter 5: Inheritance & Polymorphism",
-    difficulty: "medium",
-    tags: ["Virtual Functions", "Dynamic Binding", "Polymorphism"],
-    question: "Consider the following C++ code. What will be the output printed to the console?",
-    code: `#include <iostream>
-using namespace std;
-
-class Base {
+    difficulty: "hard",
+    tags: ["Copy Constructor Trap", "Member Initializer List", "Real Exam 2024-2025"],
+    question: "In C++, what happens when a Derived class defines a Copy Constructor `Derived(const Derived& other)` but DOES NOT explicitly call the Base class copy constructor in its member initializer list?",
+    code: `class Base {
 public:
-    virtual void show() { cout << "Base::show "; }
-    void print() { cout << "Base::print "; }
+    Base() { cout << "Base() "; }
+    Base(const Base& b) { cout << "Base(copy) "; }
 };
-
 class Derived : public Base {
 public:
-    void show() override { cout << "Derived::show "; }
-    void print() { cout << "Derived::print "; }
+    Derived(const Derived& d) { cout << "Derived(copy) "; }
 };
-
 int main() {
-    Base* b = new Derived();
-    b->show();
-    b->print();
-    delete b;
-    return 0;
+    Derived d1;
+    Derived d2 = d1; // What is printed for d2?
 }`,
     options: [
-      "A. Base::show Base::print",
-      "B. Derived::show Derived::print",
-      "C. Derived::show Base::print",
-      "D. Base::show Derived::print"
+      "A. The compiler generates an error because base copy constructor must always be explicitly invoked.",
+      "B. C++ automatically calls Base's Default Constructor `Base()`, followed by `Derived(copy)`.",
+      "C. C++ automatically calls Base's Copy Constructor `Base(copy)`, followed by `Derived(copy)`.",
+      "D. C++ skips base construction completely and only executes `Derived(copy)`."
     ],
-    correctIndex: 2,
-    explanation: `**Explanation:**
-- \`b->show()\` invokes **Dynamic Binding** (Late Binding) because \`show()\` is declared as \`virtual\` in \`Base\`. At runtime, C++ resolves the call through the virtual method table (vtable) to the actual object type (\`Derived\`), printing \`Derived::show \`.
-- \`b->print()\` uses **Static Binding** (Early Binding) because \`print()\` is non-virtual. The compiler decides which function to call based solely on the static type of the pointer (\`Base*\`), printing \`Base::print \`.
-- *Vietnamese Note:* Hàm \`virtual\` sử dụng dynamic binding (gọi hàm của lớp thực tế \`Derived\`), còn hàm non-virtual sử dụng static binding (gọi theo kiểu con trỏ \`Base*\`).`
+    correctIndex: 1,
+    explanation: "**Explanation (Bẫy Đề Thi Thật 2024-2025):**\n" +
+      "If you do not specify a base constructor call in the member initializer list of a derived copy constructor, C++ falls back to calling the **default constructor** of the base class (`Base()`), NOT the base copy constructor! To perform a proper deep copy of base sub-objects, you must write `Derived(const Derived& d) : Base(d) { ... }`.\n" +
+      "- *Vietnamese Note:* Bẫy kinh điển trong đề thi 2024-2025: Khi viết Copy Constructor lớp con mà quên gọi `Base(d)` ở danh sách khởi tạo, C++ sẽ tự động gọi **Default Constructor** của lớp cha!"
   },
   {
     id: "mcq_2",
@@ -61,63 +52,81 @@ int main() {
     chapter: "ch5",
     chapterName: "Chapter 5: Inheritance & Polymorphism",
     difficulty: "hard",
-    tags: ["Virtual Destructor", "Memory Leak", "Destruction Order"],
-    question: "Why should a base class destructor almost always be declared as `virtual` when the class is intended to be used polymorphically?",
-    code: `Base* ptr = new Derived();
-delete ptr; // What happens if ~Base() is NOT virtual?`,
+    tags: ["Virtual Destructor", "Polymorphism", "Memory Leak"],
+    question: "Consider a polymorphic hierarchy where `Base* ptr = new Derived(); delete ptr;` is executed. If `~Base()` is NOT declared `virtual`, what is the exact behavior defined by the C++ Standard?",
+    code: `class Base { public: ~Base() { cout << "~Base "; } };
+class Derived : public Base {
+    int* buffer;
+public:
+    Derived() : buffer(new int[100]) {}
+    ~Derived() { delete[] buffer; cout << "~Derived "; }
+};
+int main() {
+    Base* ptr = new Derived();
+    delete ptr;
+}`,
     options: [
-      "A. To allow private members of the Derived class to be accessed inside main().",
-      "B. To ensure that the Derived destructor is called first before the Base destructor, preventing memory leaks.",
-      "C. To prevent the compiler from generating default copy constructors.",
-      "D. To automatically deallocate stack variables allocated inside member methods."
+      "A. It calls `~Derived()` followed by `~Base()`, freeing all heap memory properly.",
+      "B. It invokes Undefined Behavior (typically executing only `~Base()` via static binding), leaking `buffer`.",
+      "C. The program fails to compile because deleting a derived object through a base pointer requires `virtual ~Base()`.",
+      "D. The runtime environment throws a `std::bad_alloc` exception."
     ],
     correctIndex: 1,
-    explanation: `**Explanation:**
-When deleting an object through a base class pointer (\`Base* ptr = new Derived(); delete ptr;\`), if \`~Base()\` is not virtual, the compiler performs static binding and only invokes \`~Base()\`. The \`Derived\` destructor is bypassed completely, causing resources and heap memory allocated within \`Derived\` to leak. Declaring \`virtual ~Base()\` ensures that destruction starts at \`~Derived()\` and cascades up to \`~Base()\`.
-- *Vietnamese Note:* Nếu destructor lớp cha không có \`virtual\`, lệnh \`delete ptr\` qua con trỏ lớp cha chỉ gọi destructor của \`Base\`, bỏ qua \`Derived\` -> gây Memory Leak.`
+    explanation: "**Explanation:**\n" +
+      "According to the C++ Standard (§8.3.5), deleting an object of derived type through a pointer to a base type that does not have a virtual destructor results in **Undefined Behavior**. In practice, the compiler performs static binding and calls only `~Base()`. The `~Derived()` destructor is completely bypassed, leaking the dynamic array `buffer`.\n" +
+      "- *Vietnamese Note:* Nếu destructor của `Base` không có `virtual`, `delete ptr` qua con trỏ lớp cha là Undefined Behavior (thực tế chỉ gọi `~Base()`, bỏ qua `~Derived()` và gây leak bộ nhớ)."
   },
   {
     id: "mcq_3",
     number: 3,
     chapter: "ch5",
     chapterName: "Chapter 5: Inheritance & Polymorphism",
-    difficulty: "easy",
-    tags: ["Abstract Class", "Pure Virtual Function"],
-    question: "What makes a C++ class an **Abstract Base Class**?",
-    code: null,
+    difficulty: "medium",
+    tags: ["Dynamic Binding", "Virtual Table", "vptr"],
+    question: "How does the C++ runtime implement dynamic polymorphism for virtual function calls like `ptr->display()`?",
+    code: `class Shape { public: virtual void display() { cout << "Shape"; } };
+class Circle : public Shape { public: void display() override { cout << "Circle"; } };
+Shape* s = new Circle();
+s->display();`,
     options: [
-      "A. Having all member functions declared as `protected`.",
-      "B. Inheriting from more than two classes simultaneously.",
-      "C. Containing at least one pure virtual function (e.g., `virtual void f() = 0;`).",
-      "D. Having a private constructor and no public methods."
+      "A. The compiler performs string comparison on method names at runtime.",
+      "B. The object contains a hidden virtual table pointer (`vptr`) pointing to a `vtable` of function pointers.",
+      "C. The operating system performs dynamic linking on each method call.",
+      "D. RTTI (Run-Time Type Information) is used to recompile the call site on the fly."
     ],
-    correctIndex: 2,
-    explanation: `**Explanation:**
-In C++, an abstract class is a class that contains at least one **pure virtual function** (syntax: \`virtual ReturnType funcName(params) = 0;\`). You cannot instantiate objects directly from an abstract class; derived classes must implement all pure virtual functions to become concrete classes.`
+    correctIndex: 1,
+    explanation: "**Explanation:**\n" +
+      "C++ implements dynamic dispatch using a **Virtual Method Table (vtable)** per class and a hidden **vptr** (virtual pointer) embedded inside each object instance. When `s->display()` is invoked, the program dereferences `s->vptr` to find `Circle`'s vtable and calls the function pointer at the slot for `display()`.\n" +
+      "- *Vietnamese Note:* Mỗi đối tượng có chứa 1 con trỏ ẩn `vptr` trỏ tới bảng `vtable` của lớp tương ứng để tìm hàm cần gọi tại runtime."
   },
   {
     id: "mcq_4",
     number: 4,
     chapter: "ch5",
     chapterName: "Chapter 5: Inheritance & Polymorphism",
-    difficulty: "medium",
-    tags: ["override Keyword", "C++11", "Compilation Safety"],
-    question: "In C++11 and later, what is the primary purpose of the `override` specifier on a member function?",
-    code: `class Base {
-    virtual void calculate(int x) const;
-};
-class Derived : public Base {
-    void calculate(int x) const override; // Purpose?
-};`,
+    difficulty: "hard",
+    tags: ["Object Slicing", "Pass-by-value", "Polymorphism"],
+    question: "What is **Object Slicing** in C++ and when does it occur?",
+    code: `class Base { public: int x; virtual void print() { cout << "Base"; } };
+class Derived : public Base { public: int y; void print() override { cout << "Derived"; } };
+
+void test(Base obj) { // Pass by value!
+    obj.print();
+}
+int main() {
+    Derived d;
+    test(d);
+}`,
     options: [
-      "A. It forces the function to execute in a separate thread asynchronously.",
-      "B. It makes the function accessible from outside the class regardless of access specifiers.",
-      "C. It instructs the compiler to verify that the function actually overrides a virtual function with the exact same signature in a base class.",
-      "D. It converts the function into an inline function automatically."
+      "A. It occurs when a derived object is passed by pointer, causing memory fragmentation.",
+      "B. It occurs when a Derived object is assigned or passed by value to a Base object, stripping away Derived members and vptr.",
+      "C. It occurs when multiple inheritance classes have identical member names.",
+      "D. It is a compilation optimization technique to reduce executable binary size."
     ],
-    correctIndex: 2,
-    explanation: `**Explanation:**
-The \`override\` specifier is a compile-time check introduced in C++11. If there is a typo in the method name, parameter types, or \`const\`-qualification (which would otherwise silently create an overload instead of an override), the compiler immediately raises a compilation error.`
+    correctIndex: 1,
+    explanation: "**Explanation:**\n" +
+      "Object slicing occurs when a derived class object is assigned or passed **by value** to a base class variable. The copy constructor of `Base` only copies the base sub-object data, 'slicing off' the derived-specific members (`y`) and pointing the vptr to `Base`'s vtable. Thus, `obj.print()` inside `test()` prints `Base`.\n" +
+      "- *Vietnamese Note:* Cắt lớp đối tượng (Object Slicing) xảy ra khi truyền tham trị đối tượng con vào biến lớp cha -> phần dữ liệu mở rộng của con bị cắt bỏ hoàn toàn."
   },
   {
     id: "mcq_5",
@@ -125,147 +134,159 @@ The \`override\` specifier is a compile-time check introduced in C++11. If there
     chapter: "ch5",
     chapterName: "Chapter 5: Inheritance & Polymorphism",
     difficulty: "hard",
-    tags: ["Object Slicing", "Pass-by-value", "Copying"],
-    question: "What phenomenon occurs in the following code snippet?",
-    code: `class Base {
+    tags: ["Virtual in Constructor", "Lifecycle", "Constructor Traps"],
+    question: "What is printed when calling a virtual method from inside a Base class constructor?",
+    code: `#include <iostream>
+using namespace std;
+
+class Base {
 public:
-    virtual void identify() { cout << "Base"; }
+    Base() { setup(); }
+    virtual void setup() { cout << "Base::setup "; }
 };
 class Derived : public Base {
-    int extraData;
 public:
-    void identify() override { cout << "Derived"; }
+    Derived() {}
+    void setup() override { cout << "Derived::setup "; }
 };
-
-void test(Base obj) { // Passed by VALUE
-    obj.identify();
-}
-
 int main() {
     Derived d;
-    test(d);
     return 0;
 }`,
     options: [
-      "A. Compilation error: cannot pass a Derived object to a Base parameter.",
-      "B. Runtime crash due to invalid memory dereferencing.",
-      "C. Object Slicing occurs: only the Base portion of 'd' is copied into 'obj', and 'Base' is printed.",
-      "D. Polymorphism works correctly and 'Derived' is printed."
+      "A. Derived::setup",
+      "B. Base::setup",
+      "C. Compilation Error: cannot call virtual function in constructor",
+      "D. Undefined Behavior at runtime"
     ],
-    correctIndex: 2,
-    explanation: `**Explanation:**
-**Object Slicing** happens when a derived class object is assigned or passed by value to a base class object (\`void test(Base obj)\`). The derived-specific members (\`extraData\`) and the derived vptr are sliced off; the copy is strictly of type \`Base\`. Thus, dynamic polymorphism is lost and \`Base::identify()\` is invoked. To preserve polymorphism, pass by reference (\`const Base&\`) or by pointer (\`Base*\`).`
+    correctIndex: 1,
+    explanation: "**Explanation (Bẫy Gọi Virtual Trong Constructor):**\n" +
+      "During the construction of `Base`, the `Derived` sub-object has not yet been initialized (its members do not exist yet). Therefore, C++ sets the `vptr` to `Base`'s vtable during `Base`'s constructor. Calling `setup()` executes `Base::setup`, NOT `Derived::setup`!\n" +
+      "- *Vietnamese Note:* Trong constructor của lớp cha, đối tượng con chưa được tạo nên hàm ảo chỉ gọi phiên bản của lớp cha `Base::setup`."
   },
   {
     id: "mcq_6",
     number: 6,
     chapter: "ch5",
     chapterName: "Chapter 5: Inheritance & Polymorphism",
-    difficulty: "medium",
-    tags: ["final Keyword", "C++11", "Inheritance Control"],
-    question: "What is the effect of applying the `final` specifier to a class or a virtual method in C++11?",
-    code: `class Base {
-    virtual void func() final;
-};
-class Derived final : public Base {
-};`,
+    difficulty: "hard",
+    tags: ["Diamond Problem", "Virtual Inheritance"],
+    question: "How does **Virtual Inheritance** (`class B : virtual public A`) solve the Diamond Problem in C++?",
+    code: `class A { public: int val; };
+class B : virtual public A {};
+class C : virtual public A {};
+class D : public B, public C {};`,
     options: [
-      "A. It marks the class/method as deprecated.",
-      "B. It prevents further overriding of \`func()\` in subclasses, and prevents other classes from inheriting from \`Derived\`.",
-      "C. It makes the class immutable and all its members constant.",
-      "D. It requires the class to be instantiated only once (Singleton)."
+      "A. By making all methods in class A pure virtual.",
+      "B. By ensuring that only one single shared instance of base class A exists in the most derived class D.",
+      "C. By preventing class D from accessing any members of class A.",
+      "D. By dynamically allocating class A on the heap during runtime."
     ],
     correctIndex: 1,
-    explanation: `**Explanation:**
-In C++11:
-1. When applied to a virtual method (\`virtual void func() final;\`), it prohibits any derived class from overriding \`func()\`.
-2. When applied to a class (\`class Derived final\`), it forbids any other class from inheriting from \`Derived\`. Attempting to inherit results in a compile-time error.`
+    explanation: "**Explanation:**\n" +
+      "Virtual inheritance ensures that only one shared sub-object of `A` is included in `D`. The most derived class `D` is responsible for directly invoking `A`'s constructor in its member initializer list, eliminating ambiguity when accessing `d.val`.\n" +
+      "- *Vietnamese Note:* Kế thừa ảo (Virtual Inheritance) giải quyết bài toán Kim Cương (Diamond Problem) bằng cách đảm bảo chỉ có duy nhất 1 bản sao lớp gốc `A` được chia sẻ trong lớp `D`."
   },
   {
     id: "mcq_7",
     number: 7,
     chapter: "ch5",
     chapterName: "Chapter 5: Inheritance & Polymorphism",
-    difficulty: "hard",
-    tags: ["dynamic_cast", "RTTI", "Type Casting"],
-    question: "When performing a safe downcast using `dynamic_cast<Derived*>(basePtr)` on a pointer, what is returned if the cast fails at runtime?",
-    code: `Base* basePtr = new AnotherDerived();
-Derived* d = dynamic_cast<Derived*>(basePtr);`,
+    difficulty: "medium",
+    tags: ["Pure Virtual Function", "Abstract Class"],
+    question: "Which of the following statements about pure virtual functions in C++ is **TRUE**?",
+    code: `class Interface {
+public:
+    virtual void execute() = 0;
+};`,
     options: [
-      "A. It throws an `std::bad_cast` exception.",
-      "B. It returns `nullptr` (or NULL).",
-      "C. It returns a garbage pointer that causes Undefined Behavior.",
-      "D. It triggers a compile-time error."
+      "A. A pure virtual function can NEVER have an implementation in C++.",
+      "B. A class containing a pure virtual function cannot be instantiated, but a pure virtual function CAN have a default implementation outside the class.",
+      "C. A pure virtual function forces all derived classes to be declared `final`.",
+      "D. Pure virtual functions can only return `void`."
     ],
     correctIndex: 1,
-    explanation: `**Explanation:**
-- When \`dynamic_cast\` is used on **pointers** (\`Derived*\`), if \`basePtr\` does not actually point to a \`Derived\` object, the cast fails gracefully by returning **\`nullptr\`**.
-- When \`dynamic_cast\` is used on **references** (\`dynamic_cast<Derived&>(baseRef)\`), because references cannot be null, a failed cast throws an **\`std::bad_cast\`** exception.
-- Note: \`dynamic_cast\` requires the Base class to have at least one virtual function (polymorphic class).`
+    explanation: "**Explanation:**\n" +
+      "In C++, a pure virtual function makes the class abstract, but C++ actually permits providing a body for a pure virtual function outside the class declaration (e.g., `void Interface::execute() { ... }`). Derived classes still must override it, but they can call `Interface::execute()` explicitly.\n" +
+      "- *Vietnamese Note:* Hàm thuần ảo (pure virtual function) làm cho class trở thành trừu tượng, nhưng C++ vẫn cho phép định nghĩa phần thân hàm thuần ảo ở bên ngoài class."
   },
   {
     id: "mcq_8",
     number: 8,
     chapter: "ch5",
     chapterName: "Chapter 5: Inheritance & Polymorphism",
-    difficulty: "easy",
-    tags: ["Access Specifiers", "Inheritance Types"],
-    question: "Under `public` inheritance in C++, what happens to the access levels of `protected` members of the Base class in the Derived class?",
-    code: null,
+    difficulty: "hard",
+    tags: ["dynamic_cast", "RTTI", "Type Casting"],
+    question: "When using `dynamic_cast<Derived*>(basePtr)`, what is returned if `basePtr` does NOT actually point to a `Derived` instance?",
+    code: `Base* b = new AnotherDerived();
+Derived* d = dynamic_cast<Derived*>(b);`,
     options: [
-      "A. They become `private` in the Derived class.",
-      "B. They remain `protected` in the Derived class and can be accessed by member functions of Derived.",
-      "C. They become `public` and can be accessed anywhere outside the class.",
-      "D. They are inaccessible and completely hidden from Derived."
+      "A. It throws a `std::bad_cast` exception.",
+      "B. It returns `nullptr` (for pointer casts) and throws `std::bad_cast` (for reference casts).",
+      "C. It returns an uninitialized pointer pointing to invalid memory.",
+      "D. It generates a compilation error."
     ],
     correctIndex: 1,
-    explanation: `**Explanation:**
-Under \`public\` inheritance (\`class Derived : public Base\`):
-- \`public\` members in Base remain \`public\` in Derived.
-- \`protected\` members in Base remain \`protected\` in Derived (accessible within Derived and its descendants, but hidden from external code).
-- \`private\` members in Base remain \`private\` to Base and cannot be directly accessed by Derived.`
+    explanation: "**Explanation:**\n" +
+      "For pointers, `dynamic_cast` returns `nullptr` on failure. For references (which cannot be null), `dynamic_cast<Derived&>(baseRef)` throws `std::bad_cast` on failure.\n" +
+      "- *Vietnamese Note:* `dynamic_cast` với con trỏ sẽ trả về `nullptr` nếu ép kiểu thất bại; với tham chiếu sẽ ném ngoại lệ `std::bad_cast`."
   },
   {
     id: "mcq_9",
     number: 9,
     chapter: "ch5",
     chapterName: "Chapter 5: Inheritance & Polymorphism",
-    difficulty: "hard",
-    tags: ["Virtual Table", "vptr", "Internal Mechanism"],
-    question: "How does C++ internally implement dynamic polymorphism for classes containing virtual functions?",
-    code: null,
+    difficulty: "medium",
+    tags: ["Access Specifiers", "Inheritance"],
+    question: "If class `Derived` inherits from `Base` with `protected` inheritance (`class Derived : protected Base`), what do `public` members of `Base` become inside `Derived` and for external code?",
+    code: `class Base { public: int x; };
+class Derived : protected Base {};`,
     options: [
-      "A. The compiler embeds a copy of the entire Base class bytecode into every Derived object.",
-      "B. Each polymorphic class has a Virtual Method Table (vtable) of function pointers, and each object instance holds a hidden pointer (vptr) pointing to its class's vtable.",
-      "C. It evaluates string function names dynamically at runtime like an interpreted language.",
-      "D. It generates a giant global \`switch-case\` statement for all object addresses."
+      "A. They become `public` inside `Derived` and accessible from external code.",
+      "B. They become `protected` inside `Derived` and INACCESSIBLE from external code.",
+      "C. They become `private` inside `Derived` and accessible from external code.",
+      "D. They are completely hidden and cannot be accessed even inside `Derived`."
     ],
     correctIndex: 1,
-    explanation: `**Explanation:**
-Dynamic polymorphism in C++ is achieved via the **vtable / vptr mechanism**:
-1. The compiler creates a single static table called **vtable** (Virtual Table) per class containing addresses of its virtual functions.
-2. Every object of that class contains an invisible pointer member called **vptr** (virtual table pointer) pointing to the corresponding vtable.
-3. At runtime, calling \`ptr->virtualFunc()\` dereferences \`ptr->vptr\` to locate the target function address.`
+    explanation: "**Explanation:**\n" +
+      "Under `protected` inheritance, `public` and `protected` members of the base class both become `protected` members of the derived class. They can be accessed by member functions of `Derived` and its children, but NOT by external code (`d.x` is a compiler error).\n" +
+      "- *Vietnamese Note:* Khi kế thừa `protected`, các thành viên `public` của lớp cha sẽ trở thành `protected` trong lớp con (bên ngoài không truy cập được)."
   },
   {
     id: "mcq_10",
     number: 10,
     chapter: "ch5",
     chapterName: "Chapter 5: Inheritance & Polymorphism",
-    difficulty: "medium",
-    tags: ["Constructor Order", "Destructor Order", "Inheritance"],
-    question: "Given `class D : public B`, what is the correct order of Constructor and Destructor invocations when an object of `D` is created and then destroyed?",
-    code: null,
+    difficulty: "hard",
+    tags: ["Function Hiding", "Name Shadowing"],
+    question: "What is printed by the following C++ code involving function name hiding?",
+    code: `#include <iostream>
+using namespace std;
+
+class Base {
+public:
+    void print(int x) { cout << "Base::int "; }
+    void print(double x) { cout << "Base::double "; }
+};
+class Derived : public Base {
+public:
+    void print(int x) { cout << "Derived::int "; }
+};
+int main() {
+    Derived d;
+    d.print(3.14); // Notice 3.14 is a double
+    return 0;
+}`,
     options: [
-      "A. Creation: D() -> B(); Destruction: ~D() -> ~B()",
-      "B. Creation: B() -> D(); Destruction: ~B() -> ~D()",
-      "C. Creation: B() -> D(); Destruction: ~D() -> ~B()",
-      "D. Creation: D() -> B(); Destruction: ~B() -> ~D()"
+      "A. Base::double (because 3.14 is a double)",
+      "B. Derived::int (because Derived::print hides all Base::print overloads, converting 3.14 to int 3)",
+      "C. Compilation Error: ambiguous call to print()",
+      "D. Runtime Exception"
     ],
-    correctIndex: 2,
-    explanation: `**Explanation:**
-- **Construction Order:** Base class first, then Derived class (\`B() -> D()\`). A house needs its foundation built before the upper floors.
-- **Destruction Order:** Exact reverse order: Derived class first, then Base class (\`~D() -> ~B()\`).`
+    correctIndex: 1,
+    explanation: "**Explanation (Bẫy Ẩn Hàm - Name Hiding):**\n" +
+      "In C++, declaring a function in a derived class with the same name as a base class function hides ALL overloads of that name in the base class, regardless of parameter signatures. `Derived::print(int)` hides `Base::print(double)`. Thus, `d.print(3.14)` implicitly truncates `3.14` to integer `3` and calls `Derived::print(int)`!\n" +
+      "- *Vietnamese Note:* Lớp con có hàm cùng tên sẽ ẩn (hide) tất cả các hàm trùng tên của lớp cha. `3.14` bị ép kiểu ngầm định về `int 3` và gọi `Derived::int`!"
   },
   {
     id: "mcq_11",
@@ -273,21 +294,35 @@ Dynamic polymorphism in C++ is achieved via the **vtable / vptr mechanism**:
     chapter: "ch5",
     chapterName: "Chapter 5: Inheritance & Polymorphism",
     difficulty: "hard",
-    tags: ["Multiple Inheritance", "Diamond Problem", "virtual Base"],
-    question: "In C++, how is the **Diamond Problem** (ambiguity and duplicate base subobjects in multiple inheritance) resolved?",
-    code: `// A -> B, A -> C, and D inherits from both B and C
-class B : virtual public A { ... };
-class C : virtual public A { ... };
-class D : public B, public C { ... };`,
+    tags: ["Virtual Default Arguments", "Late Binding Trap"],
+    question: "What is printed when calling a virtual function that has default parameter values in both Base and Derived?",
+    code: `#include <iostream>
+using namespace std;
+
+class Base {
+public:
+    virtual void display(int x = 10) { cout << "Base:" << x << " "; }
+};
+class Derived : public Base {
+public:
+    void display(int x = 20) override { cout << "Derived:" << x << " "; }
+};
+int main() {
+    Base* ptr = new Derived();
+    ptr->display();
+    delete ptr;
+    return 0;
+}`,
     options: [
-      "A. By declaring all functions in class A as pure virtual.",
-      "B. By using **Virtual Inheritance** (\`virtual public A\`), ensuring only a single shared instance of A exists in D.",
-      "C. By making class D inherit privately from class A.",
-      "D. By deleting the default constructor of class A."
+      "A. Derived:20",
+      "B. Derived:10",
+      "C. Base:10",
+      "D. Compilation Error: default parameters cannot be overridden"
     ],
     correctIndex: 1,
-    explanation: `**Explanation:**
-The Diamond Problem arises when classes \`B\` and \`C\` both inherit from \`A\`, and class \`D\` inherits from both \`B\` and \`C\`. Without virtual inheritance, \`D\` would contain two separate copies of \`A\`, leading to ambiguity. Using **virtual base classes** (\`virtual public A\`) ensures only one single instance of \`A\` is shared within \`D\`.`
+    explanation: "**Explanation (Bẫy Default Argument Trong Virtual Function):**\n" +
+      "Default arguments are resolved at **compile time** based on the static type of the pointer (`Base*`), which specifies default value `10`. However, the virtual function body is resolved at **runtime** based on the actual object type (`Derived`). Therefore, `Derived::display` executes with argument `10`, printing `Derived:10`!\n" +
+      "- *Vietnamese Note:* Tham số mặc định được gán ở thời điểm compile (theo kiểu con trỏ `Base*` là 10), nhưng hàm ảo được gọi ở runtime (là `Derived`) -> in `Derived:10`."
   },
   {
     id: "mcq_12",
@@ -295,923 +330,942 @@ The Diamond Problem arises when classes \`B\` and \`C\` both inherit from \`A\`,
     chapter: "ch5",
     chapterName: "Chapter 5: Inheritance & Polymorphism",
     difficulty: "medium",
-    tags: ["Polymorphic Collections", "Base Pointer Array"],
-    question: "Why is an array of base pointers (`Figure* arr[]`) preferred over an array of base objects (`Figure arr[]`) when managing a heterogeneous collection of shapes?",
-    code: `Figure* list[3];
-list[0] = new Rectangle(4, 5);
-list[1] = new Circle(3);
-list[2] = new Triangle(3, 4, 5);`,
+    tags: ["final keyword", "override keyword"],
+    question: "What happens if a method is declared with `virtual void func() final;` in a Base class?",
+    code: `class Base {
+public:
+    virtual void process() final;
+};
+class Derived : public Base {
+public:
+    void process() override; // What happens here?
+};`,
     options: [
-      "A. Because `Figure arr[]` would cause object slicing, cannot store abstract types, and cannot invoke derived virtual overrides.",
-      "B. Because pointer arrays automatically free heap memory without needing delete.",
-      "C. Because C++ forbids arrays of objects under all circumstances.",
-      "D. Because `Figure*` consumes 0 bytes of memory."
+      "A. Derived can override it only if it uses the `inline` keyword.",
+      "B. The compiler emits an error because a `final` virtual method cannot be overridden by any derived class.",
+      "C. The method can only be called once in the entire program.",
+      "D. Derived inherits the method privately."
     ],
-    correctIndex: 0,
-    explanation: `**Explanation:**
-1. If \`Figure\` is abstract, \`Figure arr[]\` cannot even compile because abstract classes cannot be instantiated.
-2. Even if non-abstract, storing derived objects in \`Figure arr[]\` causes **object slicing** and disables runtime polymorphism.
-3. Using pointers (\`Figure*\`) or smart pointers (\`std::unique_ptr<Figure>\`) allows each element to hold the address of any derived object on the heap and invoke overridden methods polymorphically.`
+    correctIndex: 1,
+    explanation: "**Explanation:**\n" +
+      "The `final` specifier prevents a virtual function from being overridden in derived classes (or prevents a class from being inherited if applied to class declaration). Overriding a final method causes a compiler error.\n" +
+      "- *Vietnamese Note:* Từ khóa `final` ngăn chặn các lớp con ghi đè phương thức ảo."
   },
 
   // =========================================================================
-  // CHAPTER 6: RELATIONSHIPS & FILE PROGRAMMING (Q13 - Q20)
+  // CHAPTER 6: RELATIONSHIPS & FILE I/O (Q13 - Q20)
   // =========================================================================
   {
     id: "mcq_13",
     number: 13,
     chapter: "ch6",
-    chapterName: "Chapter 6: Relationships & File Programming",
+    chapterName: "Chapter 6: Relationships & File I/O",
     difficulty: "medium",
-    tags: ["Aggregation vs Composition", "UML Relationships"],
-    question: "What is the primary difference in **lifetime dependency** between **Composition** (\"has-a\" tight) and **Aggregation** (\"has-a\" loose) in UML/OOP design?",
+    tags: ["Composition vs Aggregation", "UML", "Lifecycle"],
+    question: "What is the key structural difference between **Composition** and **Aggregation** in OOP C++?",
     code: null,
     options: [
-      "A. In Composition, the child object exists independently if the parent is destroyed; in Aggregation, the child dies with the parent.",
-      "B. In Composition, the child object belongs exclusively to the parent and is destroyed when the parent is destroyed; in Aggregation, the child can exist independently.",
-      "C. Composition uses public inheritance while Aggregation uses private inheritance.",
-      "D. There is no difference; they are identical synonyms in C++."
+      "A. Composition is 'is-a', whereas Aggregation is 'has-a'.",
+      "B. In Composition, the component's lifetime is strictly managed by the owner (strong 'part-of'); in Aggregation, the component can exist independently (weak 'has-a').",
+      "C. Aggregation cannot use pointers, while Composition requires pointers.",
+      "D. Composition allows multiple inheritance, while Aggregation only allows single inheritance."
     ],
     correctIndex: 1,
-    explanation: `**Explanation:**
-- **Composition (Filled Diamond in UML):** Strong ownership. The part's lifetime is bound to the whole (e.g., \`Circle\` contains \`Point2D center\`). When the \`Circle\` is destroyed, \`center\` is destroyed simultaneously.
-- **Aggregation (Hollow Diamond in UML):** Weak ownership/reference. The part can exist independently outside the whole (e.g., \`Department\` has \`Teacher*\`). If the \`Department\` closes, the \`Teacher\` still exists.`
+    explanation: "**Explanation:**\n" +
+      "In **Composition** (filled diamond in UML), the owner object manages the lifecycle of the component (if the House is destroyed, the Rooms are destroyed). In **Aggregation** (hollow diamond in UML), the parts have an independent lifecycle (if the University closes, Teachers still exist).\n" +
+      "- *Vietnamese Note:* Composition (chứa gộp chặt) có vòng đời gắn liền với đối tượng cha; Aggregation (chứa gộp yếu/tụ tập) có vòng đời độc lập."
   },
   {
     id: "mcq_14",
     number: 14,
     chapter: "ch6",
-    chapterName: "Chapter 6: Relationships & File Programming",
+    chapterName: "Chapter 6: Relationships & File I/O",
     difficulty: "hard",
-    tags: ["File I/O", "EOF Pitfall", "ifstream"],
-    question: "Why is using `while (!fin.eof()) { fin >> x; cout << x; }` considered an anti-pattern in C++ file reading?",
-    code: `ifstream fin("data.txt");
-int x;
-while (!fin.eof()) { // Bẫy đọc file!
-    fin >> x;
-    cout << x << " ";
-}`,
+    tags: ["Binary File I/O", "Pointers in Binary File", "Serialization Trap"],
+    question: "Why is it DANGEROUS and INCORRECT to write an object containing raw pointers or `std::string` directly to a binary file using `file.write((char*)&obj, sizeof(obj))`?",
+    code: `class Student {
+    char* name; // heap pointer
+    int age;
+};
+Student s;
+file.write((char*)&s, sizeof(s)); // Why is this a serious bug?`,
     options: [
-      "A. It causes a compilation error because `.eof()` only works on binary files.",
-      "B. `fin.eof()` only returns `true` AFTER a read operation has already attempted to read past the end of the file, causing the last value to be printed twice.",
-      "C. It creates a memory leak by opening the file multiple times.",
-      "D. It slows down execution because EOF check requires network access."
+      "A. Because `sizeof(s)` always evaluates to 0 for classes with pointers.",
+      "B. Because it only writes the memory address of the pointer (which becomes invalid/dangling upon re-reading in another process), not the actual pointed-to text.",
+      "C. Because binary files only accept `int` data types.",
+      "D. Because `write()` automatically decrypts the memory."
     ],
     correctIndex: 1,
-    explanation: `**Explanation:**
-The EOF flag in C++ streams is only set **after** an input operation attempts to read beyond the end of the file and fails. Therefore, \`!fin.eof()\` is still true on the last iteration, \`fin >> x\` fails leaving \`x\` with its previous value, and \`cout << x\` prints the final item twice.
-**Correct idiom:** \`while (fin >> x) { cout << x << " "; }\``
+    explanation: "**Explanation (Bẫy Ghi File Nhị Phân):**\n" +
+      "A raw binary write (`sizeof(obj)`) copies the object's shallow byte layout. For pointers or dynamic objects like `std::string`, it writes the 8-byte pointer address, NOT the data on the heap! When the file is read back later, that address is dangling or points to garbage memory, causing crashes or memory corruption.\n" +
+      "- *Vietnamese Note:* Ghi nhị phân trực tiếp đối tượng chứa con trỏ chỉ ghi địa chỉ bộ nhớ (RAM address) chứ không ghi nội dung thực sự -> khi đọc lại sẽ bị trỏ rác (Dangling Pointer) và crash!"
   },
   {
     id: "mcq_15",
     number: 15,
     chapter: "ch6",
-    chapterName: "Chapter 6: Relationships & File Programming",
-    difficulty: "medium",
-    tags: ["Binary File I/O", "read", "write"],
-    question: "Which code snippet correctly writes a POD (Plain Old Data) struct `Student s` into a binary file in C++?",
-    code: `struct Student { int id; double gpa; };
-Student s = {101, 3.85};
-ofstream fout("students.dat", ios::binary);`,
+    chapterName: "Chapter 6: Relationships & File I/O",
+    difficulty: "hard",
+    tags: ["File EOF Loop Trap", "Stream State"],
+    question: "What is the common bug in the loop `while (!file.eof()) { file >> val; cout << val; }` when reading text files in C++?",
+    code: `ifstream file("data.txt");
+int val;
+while (!file.eof()) { // Why is this a bug?
+    file >> val;
+    cout << val << " ";
+}`,
     options: [
-      "A. `fout << s.id << s.gpa;`",
-      "B. `fout.write((char*)&s, sizeof(s));`",
-      "C. `fout.writeBinary(&s, sizeof(Student));`",
-      "D. `fout.put((Student*)&s);`"
+      "A. It skips the first line of the file.",
+      "B. The `eof` flag is only set AFTER an attempted read fails past the end of file, causing the last item to be printed TWICE.",
+      "C. It throws an `ifstream_overflow` exception.",
+      "D. It truncates the input file to 0 bytes."
     ],
     correctIndex: 1,
-    explanation: `**Explanation:**
-In C++, raw binary output is performed using the \`ostream::write(const char* s, streamsize count)\` method. We must cast the struct's address to a byte pointer \`(char*)&s\` (or \`reinterpret_cast<const char*>(&s)\`) and pass the byte size \`sizeof(s)\`.`
+    explanation: "**Explanation (Bẫy 10 Trong Sổ Tay - EOF Lặp Dư 1 Lần):**\n" +
+      "In C++, `file.eof()` returns true ONLY after an I/O operation has already attempted to read beyond the end of the file and failed. In the last iteration, reading fails, `val` retains its old value, and `cout << val` prints the last item a second time! The correct pattern is `while (file >> val) { cout << val << ' '; }`.\n" +
+      "- *Vietnamese Note:* Cờ `eof` chỉ bật lên sau khi phép đọc thất bại -> dẫn đến vòng lặp in lặp lại phần tử cuối cùng 2 lần!"
   },
   {
     id: "mcq_16",
     number: 16,
     chapter: "ch6",
-    chapterName: "Chapter 6: Relationships & File Programming",
-    difficulty: "easy",
-    tags: ["File Modes", "ios::app", "fstream"],
-    question: "Which file open mode flag appends new data to the end of an existing file without overwriting previous content?",
-    code: null,
+    chapterName: "Chapter 6: Relationships & File I/O",
+    difficulty: "medium",
+    tags: ["Stream Operator Overloading", "friend function"],
+    question: "Why must the stream extraction operator `operator>>` and insertion operator `operator<<` be implemented as NON-MEMBER (friend) functions rather than member methods?",
+    code: `class Point { int x, y; };
+// Why not: Point::operator<<(ostream& os)?`,
     options: [
-      "A. `ios::trunc`",
-      "B. `ios::in`",
-      "C. `ios::app`",
-      "D. `ios::ate | ios::trunc`"
+      "A. Because C++ does not allow operator overloading inside class definitions.",
+      "B. Because the left-hand operand is an `ostream`/`istream` object (e.g. `cout << p`), not the `Point` object itself.",
+      "C. Because stream objects are allocated on the GPU.",
+      "D. To make the execution 10 times faster."
     ],
-    correctIndex: 2,
-    explanation: `**Explanation:**
-- \`ios::app\` (append): All output operations are performed at the end of the file, preserving existing content.
-- \`ios::trunc\` (truncate): Discards any existing content in the file upon opening (default for \`ofstream\`).
-- \`ios::in\`: Open for reading (default for \`ifstream\`).`
+    correctIndex: 1,
+    explanation: "**Explanation:**\n" +
+      "In `cout << p;`, the left-hand operand is `std::ostream&`. If implemented as a member function, it would have to belong to `std::ostream`, which we cannot modify. If implemented as a member of `Point`, the syntax would awkwardly be `p << cout;` or `p.operator<<(cout)`.\n" +
+      "- *Vietnamese Note:* Toán tử xuất nhập `<<` và `>>` có toán hạng bên trái là stream (`cin`, `cout`) chứ không phải đối tượng của class, nên bắt buộc phải khai báo hàm toàn cục (friend)."
   },
   {
     id: "mcq_17",
     number: 17,
     chapter: "ch6",
-    chapterName: "Chapter 6: Relationships & File Programming",
+    chapterName: "Chapter 6: Relationships & File I/O",
     difficulty: "medium",
-    tags: ["stringstream", "Parsing", "String Manipulation"],
-    question: "What is the result of executing the following `std::stringstream` code?",
-    code: `#include <iostream>
-#include <sstream>
-#include <string>
-using namespace std;
-
-int main() {
-    string line = "2026 CS102 9.5";
-    stringstream ss(line);
-    int year;
-    string code;
-    double score;
-    ss >> year >> code >> score;
-    cout << code << ":" << score + 0.5;
-    return 0;
-}`,
+    tags: ["Association", "Dependency", "UML"],
+    question: "In UML and OOP design, what represents a **Dependency** ('uses-a') relationship between Class A and Class B?",
+    code: null,
     options: [
-      "A. 2026:10",
-      "B. CS102:10",
-      "C. CS102:9.50.5",
-      "D. Compilation error on stringstream extraction."
+      "A. Class A has a member variable of type Class B.",
+      "B. Class A receives an object of Class B as a parameter in a method or uses it as a local variable without storing it as an attribute.",
+      "C. Class A inherits all protected methods of Class B.",
+      "D. Class A and Class B are defined in the same source file."
     ],
     correctIndex: 1,
-    explanation: `**Explanation:**
-\`stringstream\` breaks whitespace-delimited tokens from the string \`line\`:
-- \`ss >> year\` extracts \`2026\`
-- \`ss >> code\` extracts \`"CS102"\`
-- \`ss >> score\` extracts \`9.5\` (floating point)
-- \`cout << code << ":" << score + 0.5\` calculates \`9.5 + 0.5 = 10\`, printing \`CS102:10\`.`
+    explanation: "**Explanation:**\n" +
+      "A Dependency (dashed arrow with open arrowhead in UML) is the weakest relationship. Class A temporarily uses Class B (e.g., as a parameter in a method like `void printReport(Printer& p);`), but does not retain a persistent pointer/reference to B as a member attribute.\n" +
+      "- *Vietnamese Note:* Phụ thuộc (Dependency - uses a) là quan hệ ngắn hạn khi lớp A nhận B làm tham số hàm hoặc biến cục bộ tạm thời."
   },
   {
     id: "mcq_18",
     number: 18,
     chapter: "ch6",
-    chapterName: "Chapter 6: Relationships & File Programming",
+    chapterName: "Chapter 6: Relationships & File I/O",
     difficulty: "hard",
-    tags: ["Binary Serialization Pitfall", "Pointers in Binary Files"],
-    question: "Why is it dangerous to directly write an object containing a pointer member (like `std::string` or `int*`) to a binary file using `fout.write((char*)&obj, sizeof(obj))`?",
-    code: `class Employee {
-    int id;
-    string* name; // Pointer to heap memory!
-};
-Employee e;
-fout.write((char*)&e, sizeof(e)); // Danger?`,
+    tags: ["File Stream Modes", "ios::app vs ios::trunc"],
+    question: "What is the difference between `ios::app` and `ios::ate` when opening an `ofstream` in C++?",
+    code: `ofstream f1("log.txt", ios::app);
+ofstream f2("log.txt", ios::ate);`,
     options: [
-      "A. Because `sizeof(obj)` is always 0 for classes with pointers.",
-      "B. Because it only writes the numeric memory address of the pointer rather than the actual string data; when read back in a new run, it results in a dangling pointer / invalid address.",
-      "C. Because binary files can only store fundamental integers.",
-      "D. Because the operating system blocks pointer writes for security reasons."
+      "A. `ios::app` forces EVERY write operation to append to the end of the file, whereas `ios::ate` simply starts the write pointer at the end but allows seeking to other positions.",
+      "B. `ios::app` truncates the file to 0 bytes, while `ios::ate` preserves existing content.",
+      "C. `ios::ate` is for binary files only; `ios::app` is for text files only.",
+      "D. There is no difference; they are exact aliases."
     ],
-    correctIndex: 1,
-    explanation: `**Explanation:**
-Writing raw bytes of an object with pointers saves the pointer's *virtual memory address* (e.g. \`0x7ffee4...\`), not the payload pointed to on the heap. When the program is restarted and the file is read back, that memory address is no longer valid, causing crashes when dereferenced. Deep serialization (writing string length + character array) is required.`
+    correctIndex: 0,
+    explanation: "**Explanation:**\n" +
+      "In `ios::app` (append mode), all output operations are strictly performed at the end of the file (any `seekp()` call is ignored before write). In `ios::ate` ('at end' mode), the stream seeks to the end upon opening, but you can reposition the pointer elsewhere using `seekp()` to overwrite existing data.\n" +
+      "- *Vietnamese Note:* `ios::app` luôn ghi vào cuối file; `ios::ate` chỉ đặt con trỏ tại cuối file lúc mở nhưng vẫn cho phép `seek` đến vị trí khác."
   },
   {
     id: "mcq_19",
     number: 19,
     chapter: "ch6",
-    chapterName: "Chapter 6: Relationships & File Programming",
+    chapterName: "Chapter 6: Relationships & File I/O",
     difficulty: "medium",
-    tags: ["Stream State Flags", "Error Recovery", "cin.clear"],
-    question: "If a user enters invalid non-numeric text (e.g. `\"abc\"`) when `cin >> number` is expecting an integer, which two functions are required to restore `cin` to a working state?",
-    code: null,
+    tags: ["tellg", "seekg", "File Size"],
+    question: "How do you calculate the exact size of a file in bytes using C++ standard file streams?",
+    code: `ifstream file("data.bin", ios::binary | ios::ate);
+// How to get size?`,
     options: [
-      "A. `cin.close()` followed by `cin.open()`",
-      "B. `cin.clear()` (to reset fail bit) and `cin.ignore()` (to discard the offending characters from the buffer)",
-      "C. `cin.flush()` and `cin.restart()`",
-      "D. `delete cin` and `cin = new istream()`"
+      "A. `int size = file.length();`",
+      "B. `streampos size = file.tellg();` (when opened with `ios::ate`)",
+      "C. `sizeof(file);`",
+      "D. `file.size_in_bytes();`"
     ],
     correctIndex: 1,
-    explanation: `**Explanation:**
-When invalid input occurs, the stream sets its \`failbit\` and stops reading.
-1. \`cin.clear()\` resets the internal error flags back to \`goodbit\`.
-2. \`cin.ignore(numeric_limits<streamsize>::max(), '\\n')\` clears out the bad characters sitting in the input stream buffer so the next read won't fail immediately again.`
+    explanation: "**Explanation:**\n" +
+      "By opening the file in binary mode with `ios::ate`, the get pointer (`g`) is immediately placed at the end of the file. Calling `file.tellg()` returns the current get position in bytes, which equals the total file size.\n" +
+      "- *Vietnamese Note:* Mở file với cờ `ios::ate` và gọi `file.tellg()` sẽ trả về vị trí con trỏ đọc tại cuối file = kích thước file theo byte."
   },
   {
     id: "mcq_20",
     number: 20,
     chapter: "ch6",
-    chapterName: "Chapter 6: Relationships & File Programming",
-    difficulty: "easy",
-    tags: ["Association", "Dependency", "UML"],
-    question: "In UML class relationships, when class `InvoicePrinter` receives an instance of `Invoice` as a parameter to its `print(const Invoice& inv)` method without storing it as a member variable, what type of relationship is this?",
-    code: null,
+    chapterName: "Chapter 6: Relationships & File I/O",
+    difficulty: "hard",
+    tags: ["Stream State Flags", "failbit", "clear()"],
+    question: "If a user enters invalid text when `cin >> intVar` is executed, what happens to the stream state and what must be done to restore input reading?",
+    code: `int intVar;
+cin >> intVar; // User enters "hello"`,
     options: [
-      "A. Inheritance (\"is-a\")",
-      "B. Composition (\"part-of\")",
-      "C. Dependency / Association (\"uses-a\")",
-      "D. Generalization"
+      "A. The stream throws `std::runtime_error` immediately.",
+      "B. `cin.failbit` is set; subsequent reads will fail silently until `cin.clear()` is called and invalid characters are extracted with `cin.ignore()`.",
+      "C. `intVar` is set to `-1` and the stream continues normally.",
+      "D. The program crashes with SIGSEGV."
     ],
-    correctIndex: 2,
-    explanation: `**Explanation:**
-When one class uses another class temporarily (e.g. as a method parameter, local variable, or return value) without holding a permanent reference as a field, it represents a **Dependency / Association** ("uses-a" relationship, represented by a dashed arrow in UML).`
+    correctIndex: 1,
+    explanation: "**Explanation:**\n" +
+      "When extraction fails, `cin.fail()` becomes true (`failbit` is set), and `cin` refuses further reads. To recover, you must call `cin.clear()` to reset the error flags and `cin.ignore(numeric_limits<streamsize>::max(), '\\n')` to flush the invalid characters from the stream buffer.\n" +
+      "- *Vietnamese Note:* Khi nhập sai kiểu dữ liệu, `cin` bật cờ `failbit`. Phải dùng `cin.clear()` để xóa cờ lỗi và `cin.ignore()` để bỏ qua các ký tự rác còn sót lại."
   },
 
   // =========================================================================
-  // CHAPTER 7: TEMPLATES & EXCEPTION HANDLING (Q21 - Q30)
+  // CHAPTER 7: TEMPLATES & EXCEPTIONS (Q21 - Q30)
   // =========================================================================
   {
     id: "mcq_21",
     number: 21,
     chapter: "ch7",
-    chapterName: "Chapter 7: Templates & Exception Handling",
-    difficulty: "easy",
-    tags: ["Function Template", "Generic Programming"],
-    question: "What is the primary benefit of using C++ templates?",
-    code: `template <typename T>
-T myMax(T a, T b) {
-    return (a > b) ? a : b;
-}`,
+    chapterName: "Chapter 7: Templates & Exceptions",
+    difficulty: "hard",
+    tags: ["Stack Unwinding", "Exception in Constructor", "RAII"],
+    question: "If an exception is thrown inside a constructor before it finishes, what happens to the object's destructor and its member variables?",
+    code: `class Device {
+    Component c1;
+    int* data;
+public:
+    Device() : data(new int[50]) {
+        throw runtime_error("Error in Device ctor");
+    }
+    ~Device() { delete[] data; cout << "~Device "; }
+};`,
     options: [
-      "A. They make the program run in a virtual machine.",
-      "B. They allow writing generic, type-independent code where the compiler generates concrete types at compile time without runtime overhead.",
-      "C. They convert all dynamic allocations into garbage-collected pointers.",
-      "D. They eliminate the need for header files."
+      "A. `~Device()` is executed, freeing `data`.",
+      "B. `~Device()` is NEVER called because the object was never fully constructed; however, destructors for fully constructed members (`c1`) ARE called during Stack Unwinding.",
+      "C. The program terminates immediately with `std::abort()`.",
+      "D. All memory on the entire stack is leaked."
     ],
     correctIndex: 1,
-    explanation: `**Explanation:**
-C++ templates enable **Generic Programming** (Compile-time Polymorphism). When you call \`myMax(3, 5)\` or \`myMax(3.2, 1.4)\`, the compiler automatically instantiates specialized versions (\`myMax<int>\` and \`myMax<double>\`) at compile time with zero runtime performance cost.`
+    explanation: "**Explanation (Bẫy Ngoại Lệ Trong Constructor):**\n" +
+      "In C++, an object is only considered constructed after its constructor completes successfully. If an exception is thrown inside the constructor, `~Device()` will NOT be called! Any raw pointer (`data`) allocated before the throw will leak unless wrapped in a smart pointer (`std::unique_ptr`). However, sub-objects like `c1` that finished constructing will have their destructors called during **Stack Unwinding**.\n" +
+      "- *Vietnamese Note:* Nếu constructor ném ngoại lệ giữa chừng, destructor của đối tượng đó SẼ KHÔNG ĐƯỢC GỌI -> rò rỉ con trỏ thô `data` nếu không dùng Smart Pointer / RAII."
   },
   {
     id: "mcq_22",
     number: 22,
     chapter: "ch7",
-    chapterName: "Chapter 7: Templates & Exception Handling",
-    difficulty: "medium",
-    tags: ["Class Template", "Out-of-class Definition"],
-    question: "When defining a member function of a class template outside the class declaration, which syntax is strictly required?",
+    chapterName: "Chapter 7: Templates & Exceptions",
+    difficulty: "hard",
+    tags: ["Template Static Members", "Compilation"],
+    question: "How are `static` data members handled in C++ Class Templates?",
     code: `template <typename T>
-class Stack {
-    T* data;
+class Counter {
 public:
-    void push(T val);
-};`,
+    static int count;
+};
+template <typename T> int Counter<T>::count = 0;
+
+int main() {
+    Counter<int>::count = 5;
+    Counter<double>::count = 10;
+    cout << Counter<int>::count << " " << Counter<double>::count;
+}`,
     options: [
-      "A. `void Stack::push(T val) { ... }`",
-      "B. `template <typename T> void Stack<T>::push(T val) { ... }`",
-      "C. `template <> void Stack::push(T val) { ... }`",
-      "D. `generic <T> void Stack<T>::push(T val) { ... }`"
+      "A. 10 10 (all template instantiations share one single static variable).",
+      "B. 5 10 (EACH distinct template type instantiation `Counter<int>`, `Counter<double>` gets its own independent static variable).",
+      "C. Compilation Error: static members are not allowed in templates.",
+      "D. 0 0"
     ],
     correctIndex: 1,
-    explanation: `**Explanation:**
-Defining a class template method outside the class header requires two things:
-1. The prefix \`template <typename T>\`
-2. The class qualification with type parameter \`Stack<T>::push(T val)\`. Omitting \`<T>\` will result in a syntax error.`
+    explanation: "**Explanation:**\n" +
+      "Each distinct instantiation of a template class (such as `Counter<int>` vs `Counter<double>`) is a completely separate class type generated by the compiler. Therefore, each type has its own distinct static member instance in memory, printing `5 10`.\n" +
+      "- *Vietnamese Note:* Mỗi kiểu dữ liệu cụ thể hóa template (`Counter<int>`, `Counter<double>`) là 1 lớp độc lập và có một bản sao biến `static` riêng biệt!"
   },
   {
     id: "mcq_23",
     number: 23,
     chapter: "ch7",
-    chapterName: "Chapter 7: Templates & Exception Handling",
+    chapterName: "Chapter 7: Templates & Exceptions",
     difficulty: "hard",
-    tags: ["Template Specialization", "Edge Cases"],
-    question: "What is **Full Template Specialization** used for in C++?",
-    code: `template <>
-class Formatter<const char*> {
-    // Custom implementation specifically for C-style strings
+    tags: ["Google Expected Pattern", "Exception-less Error Handling", "Real Exam 2024-2025"],
+    question: "In systems that avoid C++ exceptions (such as Google C++ Style Guide and Real Exam 2024-2025), how does the `Expected<T>` pattern represent success and failure?",
+    code: `template <typename T>
+struct Expected {
+    bool success;
+    string message;
+    T data;
 };`,
     options: [
-      "A. To restrict a template so that it only works with primitive integers.",
-      "B. To provide a completely custom, specialized implementation of a template for a specific data type (e.g. \`const char*\` or \`bool\`) differing from the generic version.",
-      "C. To prevent the compiler from generating templates.",
-      "D. To convert a class template into a regular function."
+      "A. It throws `std::runtime_error` when `success == false`.",
+      "B. It wraps the result value `data` on success (`success = true`) or returns an error `message` on failure without throwing exceptions, enabling zero-cost predictable control flow.",
+      "C. It converts all integer values to floating point numbers.",
+      "D. It requires dynamic casting at runtime."
     ],
     correctIndex: 1,
-    explanation: `**Explanation:**
-Full Template Specialization (syntax: \`template <>\`) allows developers to override the generic template logic and supply custom algorithms or storage for specific types (for instance, \`std::vector<bool>\` optimizes storage by using 1 bit per boolean, or string comparisons using \`strcmp\` instead of \`>\`).`
+    explanation: "**Explanation (Kiến Trúc Đề Thi 2024-2025):**\n" +
+      "The `Expected<T>` structure (monadic result type, similar to `std::expected` in C++23) encapsulates both potential return data and error diagnostic messages. Callers inspect `result.success` instead of enclosing code in expensive `try-catch` blocks.\n" +
+      "- *Vietnamese Note:* Cấu trúc `Expected<T>` (chuẩn Google C++ trong đề thi 2024-2025) đóng gói kết quả và thông báo lỗi mà không cần dùng `try-catch`."
   },
   {
     id: "mcq_24",
     number: 24,
     chapter: "ch7",
-    chapterName: "Chapter 7: Templates & Exception Handling",
-    difficulty: "medium",
-    tags: ["Non-type Template Parameters", "std::array"],
-    question: "In the template declaration `template <typename T, int SIZE> class StaticBuffer`, what is `int SIZE` called?",
-    code: `template <typename T, int SIZE>
-class StaticBuffer {
-    T buffer[SIZE];
-};
-StaticBuffer<int, 256> myBuf;`,
+    chapterName: "Chapter 7: Templates & Exceptions",
+    difficulty: "hard",
+    tags: ["Catch by Reference", "Exception Slicing"],
+    question: "Why should exceptions in C++ ALWAYS be caught by **const reference** (`catch (const std::exception& e)`) rather than by value (`catch (std::exception e)`)?",
+    code: `try {
+    throw CustomException("Database connection timeout");
+} catch (std::exception e) { // Why is catching by value bad?
+    cout << e.what();
+}`,
     options: [
-      "A. Dynamic Constructor Argument",
-      "B. Non-Type Template Parameter (NTTP)",
-      "C. Virtual Type Specifier",
-      "D. Variadic Argument Pack"
+      "A. To prevent compilation errors.",
+      "B. To avoid Object Slicing and unnecessary copy constructor overhead, preserving polymorphic `e.what()` behavior.",
+      "C. Because C++ does not allow catching standard exceptions.",
+      "D. To automatically retry the failed operation."
     ],
     correctIndex: 1,
-    explanation: `**Explanation:**
-\`int SIZE\` is a **Non-Type Template Parameter (NTTP)**. It represents a compile-time constant value rather than a type. \`std::array<T, N>\` is a standard example where the size \`N\` is determined at compile time.`
+    explanation: "**Explanation:**\n" +
+      "Catching by value causes **Object Slicing**: the `CustomException` is sliced down into a generic `std::exception`, destroying any custom members and resetting `what()` to the default base message. Catching by `const std::exception&` avoids copying and preserves polymorphism.\n" +
+      "- *Vietnamese Note:* Luôn bắt ngoại lệ bằng tham chiếu (`const std::exception&`) để tránh cắt lớp đối tượng (Object Slicing) và giữ đúng đa hình của hàm `what()`."
   },
   {
     id: "mcq_25",
     number: 25,
     chapter: "ch7",
-    chapterName: "Chapter 7: Templates & Exception Handling",
-    difficulty: "hard",
-    tags: ["Exception Catch Order", "Catch Order Trap"],
-    question: "What is wrong with the following `try-catch` exception handling block?",
-    code: `#include <iostream>
-#include <stdexcept>
-using namespace std;
-
-int main() {
-    try {
-        throw out_of_range("Index too large");
-    }
-    catch (const exception& e) {
-        cout << "Caught base exception: " << e.what() << endl;
-    }
-    catch (const out_of_range& e) { // Bẫy thứ tự catch!
-        cout << "Caught out_of_range: " << e.what() << endl;
-    }
-    return 0;
-}`,
+    chapterName: "Chapter 7: Templates & Exceptions",
+    difficulty: "medium",
+    tags: ["Template Specialization"],
+    question: "What is **Full Template Specialization** in C++?",
+    code: `template <typename T> class Printer { /* generic */ };
+template <> class Printer<bool> { /* specialized for bool */ };`,
     options: [
-      "A. `out_of_range` cannot be caught with a reference.",
-      "B. The second catch block (`out_of_range`) will NEVER execute because the first handler (`std::exception`) catches all derived exceptions first.",
-      "C. C++ does not allow multiple catch blocks for the same try.",
-      "D. `e.what()` returns an integer error code instead of text."
+      "A. Restricting a template to only accept primitive data types.",
+      "B. Providing a custom, dedicated implementation of a template for a specific concrete type (e.g., `bool` or `char*`).",
+      "C. Generating assembly code without using the compiler.",
+      "D. Forcing template functions to be compiled as virtual methods."
     ],
     correctIndex: 1,
-    explanation: `**Explanation:**
-C++ evaluates catch blocks sequentially from top to bottom. Because \`std::out_of_range\` inherits from \`std::exception\`, the base class handler matches first and intercepts the exception. The specific \`out_of_range\` catch block is dead code.
-**Rule:** Always catch **derived/specific exceptions first**, and **base/general exceptions last**.`
+    explanation: "**Explanation:**\n" +
+      "Full Template Specialization (`template <> class ClassName<ConcreteType>`) allows developers to override the generic template logic with optimized or custom behavior specifically tailored for one data type (e.g. `std::vector<bool>` storing bits instead of bytes).\n" +
+      "- *Vietnamese Note:* Chuyên biệt hóa toàn phần (Full Specialization) cho phép viết lại logic riêng biệt cho 1 kiểu dữ liệu cụ thể (như `bool`, `char*`)."
   },
   {
     id: "mcq_26",
     number: 26,
     chapter: "ch7",
-    chapterName: "Chapter 7: Templates & Exception Handling",
-    difficulty: "medium",
-    tags: ["catch(...)", "Default Handler"],
-    question: "What does the `catch (...)` ellipsis handler accomplish in C++?",
+    chapterName: "Chapter 7: Templates & Exceptions",
+    difficulty: "hard",
+    tags: ["catch(...)", "Catch Order"],
+    question: "What is the consequence of placing `catch (...)` at the BEGINNING of a `try-catch` block before specific exception handlers?",
     code: `try {
-    processData();
-} catch (const exception& e) {
-    cout << "Standard exception: " << e.what();
-} catch (...) {
-    cout << "Caught unknown exception!";
+    // some code
+} catch (...) { // Placed FIRST!
+    cout << "Catch all";
+} catch (const invalid_argument& e) {
+    cout << "Invalid argument";
 }`,
     options: [
-      "A. It suppresses all compile-time warnings.",
-      "B. It acts as a catch-all fallback handler that catches any thrown exception of any data type (int, string, custom types, etc.).",
-      "C. It restarts the program from main().",
-      "D. It catches only hardware segmentation faults."
+      "A. The compiler gives a warning/error because `catch (...)` captures all exceptions, making subsequent catch blocks unreachable dead code.",
+      "B. The code compiles and prioritizes `invalid_argument` automatically.",
+      "C. It creates a memory leak on the stack.",
+      "D. It converts all exceptions to exit code 0."
     ],
-    correctIndex: 1,
-    explanation: `**Explanation:**
-\`catch (...)\` is the universal catch-all block. It catches any exception regardless of its type (even non-\`std::exception\` objects like \`throw 404;\` or \`throw "error";\`). It must always be placed as the final catch block.`
+    correctIndex: 0,
+    explanation: "**Explanation:**\n" +
+      "Exception handlers are evaluated in sequential order from top to bottom. Because `catch (...)` matches ANY exception type, placing it first causes all subsequent `catch` blocks to become unreachable, which modern C++ compilers flag as an error or warning.\n" +
+      "- *Vietnamese Note:* `catch (...)` bắt tất cả mọi ngoại lệ, nên nếu đặt ở đầu sẽ làm cho các khối `catch` cụ thể phía sau không bao giờ được chạy tới."
   },
   {
     id: "mcq_27",
     number: 27,
     chapter: "ch7",
-    chapterName: "Chapter 7: Templates & Exception Handling",
-    difficulty: "hard",
-    tags: ["Stack Unwinding", "Destructor Safety", "RAII"],
-    question: "What happens to local stack objects when an exception is thrown inside a function and caught in an outer caller?",
-    code: `void func() {
-    MyObject obj1;
-    MyObject obj2;
-    throw runtime_error("Error"); // What happens to obj1 and obj2?
-}`,
+    chapterName: "Chapter 7: Templates & Exceptions",
+    difficulty: "medium",
+    tags: ["noexcept", "Move Semantics"],
+    question: "Why should Move Constructors and Move Assignment Operators be marked with `noexcept` whenever possible?",
+    code: `class Buffer {
+public:
+    Buffer(Buffer&& other) noexcept; // Why noexcept?
+};`,
     options: [
-      "A. They remain in memory forever causing memory leaks.",
-      "B. **Stack Unwinding** occurs: local stack objects are destroyed automatically in reverse order of construction by having their destructors invoked.",
-      "C. Their memory is corrupted and immediate crash occurs.",
-      "D. The program terminates immediately without running any cleanup."
+      "A. To make the constructor execute asynchronously.",
+      "B. To allow STL containers (like `std::vector`) to safely use move operations during reallocation instead of falling back to slow copies.",
+      "C. To prevent the compiler from generating default destructors.",
+      "D. To disable heap memory allocation."
     ],
     correctIndex: 1,
-    explanation: `**Explanation:**
-**Stack Unwinding** is the runtime process where the call stack is unwound until a matching \`catch\` block is found. During this process, destructors of all fully constructed local stack objects in the exited scopes are guaranteed to be called. This is why RAII (Resource Acquisition Is Initialization) is the cornerstone of C++ exception safety.`
+    explanation: "**Explanation:**\n" +
+      "When `std::vector` grows and reallocates memory, it requires strong exception safety. If an element's move constructor is not marked `noexcept`, `std::vector` cannot risk an exception during move and falls back to performing slow deep copies of all elements.\n" +
+      "- *Vietnamese Note:* Đánh dấu `noexcept` giúp các container STL như `std::vector` tự tin di chuyển (move) đối tượng khi cấp phát lại bộ nhớ mà không phải copy chậm."
   },
   {
     id: "mcq_28",
     number: 28,
     chapter: "ch7",
-    chapterName: "Chapter 7: Templates & Exception Handling",
-    difficulty: "hard",
-    tags: ["Exception in Constructor", "Destructor Lifecycle Trap"],
-    question: "If an exception is thrown inside a class **Constructor** before it finishes, will that object's **Destructor** be called?",
-    code: `class ResourceHolder {
-    int* data;
+    chapterName: "Chapter 7: Templates & Exceptions",
+    difficulty: "medium",
+    tags: ["Custom Exception", "std::exception", "what()"],
+    question: "When creating a custom exception class inheriting from `std::exception`, which virtual method must be overridden to provide error descriptions?",
+    code: `class MyException : public std::exception {
 public:
-    ResourceHolder() {
-        data = new int[100];
-        throw runtime_error("Fail!"); // Thrown inside constructor
-    }
-    ~ResourceHolder() {
-        delete[] data;
+    const char* what() const noexcept override {
+        return "Custom Error Occurred";
     }
 };`,
     options: [
-      "A. Yes, the destructor is always called automatically.",
-      "B. **No**, because in C++ an object's lifetime only begins when its constructor completes successfully. An incompletely constructed object has no destructor called.",
-      "C. Yes, but only in debug mode.",
-      "D. The compiler rejects exceptions inside constructors at compile time."
+      "A. `virtual string getMessage();`",
+      "B. `virtual const char* what() const noexcept override;`",
+      "C. `virtual void printError();`",
+      "D. `virtual int getErrorCode();`"
     ],
     correctIndex: 1,
-    explanation: `**Explanation:**
-In C++, an object is only considered \"alive\" once its constructor completes. If an exception leaves the constructor, the object is never considered fully constructed, so its destructor **will NOT run**. In the code above, \`delete[] data\` never executes, leading to a memory leak unless handled with \`std::unique_ptr\` or a try-catch inside the constructor.`
+    explanation: "**Explanation:**\n" +
+      "The C++ standard exception base class `std::exception` declares `virtual const char* what() const noexcept;`. Overriding this method provides a descriptive C-string representing the error.\n" +
+      "- *Vietnamese Note:* Kế thừa `std::exception` cần ghi đè phương thức `const char* what() const noexcept`."
   },
   {
     id: "mcq_29",
     number: 29,
     chapter: "ch7",
-    chapterName: "Chapter 7: Templates & Exception Handling",
-    difficulty: "medium",
-    tags: ["std::exception", "what() Method"],
-    question: "When creating a custom exception class inheriting from `std::exception`, which virtual method should be overridden to return the error description?",
-    code: `class MyException : public std::exception {
-public:
-    const char* ________() const noexcept override {
-        return "Custom error message";
-    }
-};`,
+    chapterName: "Chapter 7: Templates & Exceptions",
+    difficulty: "hard",
+    tags: ["Template Compilation Model", "Header Files"],
+    question: "Why are C++ template class definitions and their method implementations almost always placed together in `.h` header files rather than split into `.cpp` files?",
+    code: null,
     options: [
-      "A. `getMessage()`",
-      "B. `what()`",
-      "C. `toString()`",
-      "D. `description()`"
+      "A. Because C++ compilers do not support `.cpp` files for object-oriented programming.",
+      "B. Because the compiler needs the complete template definition at the call site to instantiate code for the specific requested type `T` during compilation.",
+      "C. To prevent other developers from reading the code.",
+      "D. To reduce heap memory consumption at runtime."
     ],
     correctIndex: 1,
-    explanation: `**Explanation:**
-\`std::exception\` defines the virtual method:
-\`virtual const char* what() const noexcept;\`
-Overriding \`what()\` allows your custom exception to integrate seamlessly with standard exception catching (\`catch (const std::exception& e) { cout << e.what(); }\`).`
+    explanation: "**Explanation:**\n" +
+      "Templates are not compiled into machine code until instantiated with concrete types (e.g. `Vector<int>`). If the implementation is in a `.cpp` file, other translation units including `vector.h` cannot see the implementation body, leading to unresolved external symbol linker errors.\n" +
+      "- *Vietnamese Note:* Template chỉ sinh mã khi có kiểu dữ liệu cụ thể, nên trình biên dịch cần nhìn thấy toàn bộ code trong file header `.h` tại nơi sử dụng để sinh mã."
   },
   {
     id: "mcq_30",
     number: 30,
     chapter: "ch7",
-    chapterName: "Chapter 7: Templates & Exception Handling",
-    difficulty: "easy",
-    tags: ["Rethrowing Exceptions", "throw;"],
-    question: "Inside a `catch` block, which statement rethrows the currently active exception up the call stack without slicing its derived type?",
+    chapterName: "Chapter 7: Templates & Exceptions",
+    difficulty: "hard",
+    tags: ["Rethrowing Exception", "throw vs throw e"],
+    question: "What is the difference between `throw;` (empty throw) and `throw e;` inside a `catch (const BaseException& e)` block?",
     code: `try {
-    doWork();
-} catch (const std::exception& e) {
-    logError(e.what());
-    ______; // Rethrow exact same exception
+    throw DerivedException();
+} catch (const BaseException& e) {
+    // Choice 1: throw;
+    // Choice 2: throw e;
 }`,
     options: [
-      "A. `throw e;`",
-      "B. `throw;`",
-      "C. `rethrow;`",
-      "D. `throw new exception();`"
+      "A. `throw;` re-throws the original polymorphic exception object (`DerivedException`), whereas `throw e;` slices it down to `BaseException`.",
+      "B. `throw;` restarts the entire program from `main()`.",
+      "C. `throw e;` is faster because it deletes the previous exception.",
+      "D. There is no difference."
     ],
-    correctIndex: 1,
-    explanation: `**Explanation:**
-- \`throw;\` (with no arguments) rethrows the original exception object exactly as-is, preserving its dynamic type and polymorphism.
-- \`throw e;\` would create a new copy and cause **object slicing** if \`e\` is a derived exception caught by base reference.`
+    correctIndex: 0,
+    explanation: "**Explanation (Bẫy Re-throw Ngoại Lệ):**\n" +
+      "`throw;` re-throws the exact active exception, preserving its dynamic type (`DerivedException`). In contrast, `throw e;` constructs a new exception object by copying `e`, causing **Object Slicing** if `e` was caught via a base class reference.\n" +
+      "- *Vietnamese Note:* Lệnh `throw;` ném tiếp đối tượng ngoại lệ gốc (giữ nguyên kiểu con `DerivedException`); còn `throw e;` tạo bản sao mới và bị cắt lớp về `BaseException`."
   },
 
   // =========================================================================
-  // CHAPTER 8 & DESIGN PATTERNS: STL & PATTERNS (Q31 - Q40)
+  // CHAPTER 8 & DESIGN PATTERNS: STL & ENTERPRISE PATTERNS (Q31 - Q40)
   // =========================================================================
   {
     id: "mcq_31",
     number: 31,
     chapter: "ch8",
-    chapterName: "Chapter 8 & Patterns: STL & Design Patterns",
-    difficulty: "easy",
-    tags: ["STL Components", "Standard Template Library"],
-    question: "What are the three fundamental pillars that compose the C++ Standard Template Library (STL)?",
-    code: null,
+    chapterName: "Chapter 8 & Design Patterns: STL & Architecture",
+    difficulty: "hard",
+    tags: ["Singleton Pattern", "Meyers Singleton", "Thread Safety"],
+    question: "In modern C++, why is **Meyers' Singleton** (`static Singleton& getInstance() { static Singleton instance; return instance; }`) preferred over pointer-based Singleton?",
+    code: `class Singleton {
+public:
+    static Singleton& getInstance() {
+        static Singleton instance; // Meyers' Singleton
+        return instance;
+    }
+private:
+    Singleton() = default;
+};`,
     options: [
-      "A. Classes, Structs, and Enums",
-      "B. Containers, Iterators, and Algorithms",
-      "C. Pointers, References, and Addresses",
-      "D. Headers, Source files, and Objects"
+      "A. Because C++11 guarantees thread-safe initialization of function-local static variables with zero manual locks, and automatically handles destruction.",
+      "B. Because it allocates memory on the CPU register.",
+      "C. Because it allows multiple instances to be created concurrently.",
+      "D. Because it disables inheritance."
     ],
-    correctIndex: 1,
-    explanation: `**Explanation:**
-The STL is organized into 3 core architectural components:
-1. **Containers:** Data structures that hold collections of objects (\`vector\`, \`list\`, \`map\`, etc.).
-2. **Iterators:** Generalized pointer-like objects used to traverse elements of containers.
-3. **Algorithms:** Generic functions that perform operations (such as \`sort\`, \`find\`, \`accumulate\`) via iterators.`
+    correctIndex: 0,
+    explanation: "**Explanation:**\n" +
+      "Since C++11 (§6.7.4), local static variable initialization is guaranteed by the language standard to be thread-safe without needing mutex locks. Furthermore, it automatically calls the destructor upon program termination, preventing memory leaks associated with raw pointer singletons.\n" +
+      "- *Vietnamese Note:* Meyers' Singleton dùng biến `static` cục bộ trong hàm, được C++11 đảm bảo an toàn đa luồng (Thread-safe) tự động mà không cần dùng Mutex lock."
   },
   {
     id: "mcq_32",
     number: 32,
     chapter: "ch8",
-    chapterName: "Chapter 8 & Patterns: STL & Design Patterns",
-    difficulty: "medium",
-    tags: ["STL Containers", "vector vs list", "Performance"],
-    question: "Which STL container provides $O(1)$ constant time random access via index operator `[]`, but $O(N)$ linear time insertion/deletion in the middle?",
+    chapterName: "Chapter 8 & Design Patterns: STL & Architecture",
+    difficulty: "hard",
+    tags: ["Iterator Pattern", "Encapsulation", "FIT-HCMUS Pattern"],
+    question: "What is the primary motivation for implementing the **Iterator Pattern** in a custom Collection class?",
     code: null,
     options: [
-      "A. `std::list`",
-      "B. `std::vector`",
-      "C. `std::set`",
-      "D. `std::stack`"
+      "A. To convert all data into linked lists.",
+      "B. To provide a uniform sequential access mechanism to elements of an aggregate object without exposing its underlying internal data structure (array, tree, hash table).",
+      "C. To prevent memory allocation on the heap.",
+      "D. To sort the elements in ascending order automatically."
     ],
     correctIndex: 1,
-    explanation: `**Explanation:**
-- \`std::vector\` is a dynamic contiguous array. It offers $O(1)$ random access by index (\`v[i]\`), but inserting in the middle requires shifting elements ($O(N)$).
-- \`std::list\` is a doubly-linked list with $O(1)$ insertion at known iterators, but no random index access ($O(N)$ traversal).`
+    explanation: "**Explanation (Mẫu Iterator Chuẩn Slide Tuần 8):**\n" +
+      "The Iterator Pattern decouples algorithms from container representations. Clients traverse elements using a uniform interface (`hasNext()`, `next()`, or `operator++`, `operator*`) without needing to know whether the container is backed by a dynamic array, a binary search tree, or a linked list.\n" +
+      "- *Vietnamese Note:* Mẫu Iterator cho phép duyệt tuần tự các phần tử của một tập hợp mà không làm lộ cấu trúc dữ liệu lưu trữ bên trong."
   },
   {
     id: "mcq_33",
     number: 33,
     chapter: "ch8",
-    chapterName: "Chapter 8 & Patterns: STL & Design Patterns",
+    chapterName: "Chapter 8 & Design Patterns: STL & Architecture",
     difficulty: "hard",
-    tags: ["Iterator Pattern", "GoF Design Pattern"],
-    question: "In the Gang of Four (GoF) **Iterator Design Pattern**, what is the primary goal of decoupling the Iterator from the Aggregate Collection?",
-    code: null,
+    tags: ["Factory Method Pattern", "Open/Closed Principle"],
+    question: "How does the **Factory Method Pattern** adhere to the **Open/Closed Principle (OCP)** when adding a new product type?",
+    code: `class NotificationFactory {
+public:
+    virtual unique_ptr<INotification> createNotification() = 0;
+};`,
     options: [
-      "A. To speed up integer addition operations.",
-      "B. To allow traversing a container's elements in multiple different ways (e.g. forward, backward, filtered) without exposing its internal data representation.",
-      "C. To prevent subclasses from using virtual functions.",
-      "D. To convert private members into public members."
+      "A. By requiring modification of existing switch-case statements in main().",
+      "B. By allowing new product types to be introduced by simply creating a new concrete creator subclass, without modifying existing client or factory code.",
+      "C. By making all class attributes public.",
+      "D. By deleting old product classes from the build."
     ],
     correctIndex: 1,
-    explanation: `**Explanation:**
-The Iterator Pattern provides a standardized way to sequentially access elements of an aggregate object (like a binary tree, linked list, or array) without exposing its underlying internal structure (encapsulation). It allows multiple simultaneous traversals with different strategies without modifying the collection class itself.`
+    explanation: "**Explanation:**\n" +
+      "Factory Method defines an interface for creating an object, but lets subclasses decide which class to instantiate. To add a new Notification type (e.g. `SlackNotification`), we create `SlackNotificationFactory` without touching or risking bugs in existing `SMS` or `Email` factories.\n" +
+      "- *Vietnamese Note:* Factory Method tuân thủ nguyên lý Đóng/Mở (OCP): Khi thêm loại sản phẩm mới, chỉ cần tạo thêm class Factory mới mà không cần sửa code cũ."
   },
   {
     id: "mcq_34",
     number: 34,
     chapter: "ch8",
-    chapterName: "Chapter 8 & Patterns: STL & Design Patterns",
-    difficulty: "medium",
-    tags: ["Singleton Pattern", "Architecture", "Design Patterns"],
-    question: "Which three implementation rules are mandatory to implement a classic **Singleton Pattern** in C++?",
-    code: `class Singleton {
-    // What goes here?
-};`,
+    chapterName: "Chapter 8 & Design Patterns: STL & Architecture",
+    difficulty: "hard",
+    tags: ["Iterator Invalidation", "std::vector Trap", "STL"],
+    question: "What happens to existing iterators and pointers to elements of a `std::vector` when a `push_back()` triggers a capacity reallocation?",
+    code: `vector<int> v = {1, 2, 3};
+auto it = v.begin();
+v.push_back(4); // Capacity exceeded!
+cout << *it; // What happens here?`,
     options: [
-      "A. Public constructor, virtual destructor, and friend functions.",
-      "B. **Private constructor**, a **static pointer/instance** variable, and a **public static `getInstance()`** method.",
-      "C. Multiple inheritance, pure virtual methods, and template parameters.",
-      "D. All methods declared inline with public copy constructor."
+      "A. `it` automatically updates to point to the new array location.",
+      "B. `it` is INVALIDATED (points to deallocated memory), causing Undefined Behavior when dereferenced.",
+      "C. The compiler throws a `vector_realloc_error`.",
+      "D. `*it` always prints 0."
     ],
     correctIndex: 1,
-    explanation: `**Explanation:**
-To guarantee that only one instance of a class exists throughout program execution:
-1. **Private Constructor** (and deleted copy/move constructors): Prevents direct instantiation via \`new Singleton()\` or local variables.
-2. **Static Member Instance Pointer:** Holds the unique instance.
-3. **Public Static \`getInstance()\` Method:** Provides a global access point to create (lazy initialization) and retrieve the instance.`
+    explanation: "**Explanation (Bẫy Iterator Invalidation Trong STL):**\n" +
+      "When a `vector` exceeds its capacity, it allocates a new larger contiguous memory block, copies existing elements over, and deallocates the old memory. All existing iterators, pointers, and references pointing to elements in the old block become **invalidated (dangling)**.\n" +
+      "- *Vietnamese Note:* Khi `std::vector` tăng dung lượng (reallocation), mảng cũ bị hủy nên tất cả iterator trỏ vào mảng cũ đều bị vô hiệu hóa (Invalidated) -> truy xuất sẽ crash!"
   },
   {
     id: "mcq_35",
     number: 35,
     chapter: "ch8",
-    chapterName: "Chapter 8 & Patterns: STL & Design Patterns",
+    chapterName: "Chapter 8 & Design Patterns: STL & Architecture",
     difficulty: "medium",
-    tags: ["std::map", "Associative Containers", "Complexity"],
-    question: "In `std::map<string, int>`, how are keys stored internally and what is the lookup time complexity for `myMap.find(key)`?",
+    tags: ["std::map vs std::unordered_map", "Data Structures", "Big-O"],
+    question: "What is the underlying data structure and search time complexity difference between `std::map` and `std::unordered_map` in C++?",
     code: null,
     options: [
-      "A. Hash table with $O(1)$ average time.",
-      "B. Self-balancing Binary Search Tree (Red-Black Tree), sorted by key with $O(\\log N)$ time complexity.",
-      "C. Unsorted array with $O(N)$ linear search.",
-      "D. Doubly linked list with $O(N)$ time complexity."
+      "A. `std::map` uses Hash Table ($O(1)$); `std::unordered_map` uses Red-Black Tree ($O(\\log n)$).",
+      "B. `std::map` uses Red-Black Tree ($O(\\log n)$ ordered); `std::unordered_map` uses Hash Table ($O(1)$ average unordered).",
+      "C. Both use arrays with $O(n)$ search time.",
+      "D. `std::map` does not allow duplicate keys, while `std::unordered_map` allows infinite duplicates."
     ],
     correctIndex: 1,
-    explanation: `**Explanation:**
-- \`std::map\` and \`std::set\` are ordered associative containers implemented using **Red-Black Trees** (Self-balancing BST). Keys are always kept sorted, giving $O(\\log N)$ logarithmic time complexity for insertions, deletions, and lookups.
-- Note: \`std::unordered_map\` is based on hash tables with $O(1)$ average lookup.`
+    explanation: "**Explanation:**\n" +
+      "`std::map` is implemented as a Self-Balancing Binary Search Tree (Red-Black Tree), keeping keys strictly ordered with $O(\\log n)$ search/insert/delete. `std::unordered_map` is implemented as a Hash Table, providing $O(1)$ average time complexity but without any key ordering.\n" +
+      "- *Vietnamese Note:* `std::map` dùng cây đỏ đen (Red-Black Tree, tìm kiếm $O(\\log n)$ có thứ tự); `std::unordered_map` dùng bảng băm (Hash Table, $O(1)$ không thứ tự)."
   },
   {
     id: "mcq_36",
     number: 36,
     chapter: "ch8",
-    chapterName: "Chapter 8 & Patterns: STL & Design Patterns",
+    chapterName: "Chapter 8 & Design Patterns: STL & Architecture",
     difficulty: "hard",
-    tags: ["end() Iterator", "Half-open Range [begin, end)"],
-    question: "In STL containers, what does `container.end()` actually point to?",
-    code: `vector<int> v = {10, 20, 30};
-auto it = v.end();`,
+    tags: ["std::unique_ptr", "Ownership", "Move Semantics"],
+    question: "Why does `std::unique_ptr` prohibit copy construction (`std::unique_ptr<T> p2 = p1;` is a compile error) but permit move construction (`std::unique_ptr<T> p2 = std::move(p1);`)?",
+    code: `unique_ptr<int> p1 = make_unique<int>(100);
+// unique_ptr<int> p2 = p1;            // ERROR
+unique_ptr<int> p2 = std::move(p1);  // OK`,
     options: [
-      "A. The last element in the container (i.e. value 30).",
-      "B. The theoretical element **immediately following the last element** (past-the-end marker).",
-      "C. \`nullptr\` or memory address 0.",
-      "D. The first element in the container."
+      "A. To enforce Exclusive Ownership semantics, ensuring exactly one pointer owns the heap resource and avoids double-free errors.",
+      "B. Because smart pointers cannot store integer values.",
+      "C. To prevent pointers from accessing private members.",
+      "D. To force the compiler to use garbage collection."
     ],
-    correctIndex: 1,
-    explanation: `**Explanation:**
-STL ranges are always **half-open intervals: \`[begin, end)\`**. \`v.begin()\` points to the first element (\`10\`), whereas \`v.end()\` points to the position **one past the last valid element**. Dereferencing \`*v.end()\` is Undefined Behavior.`
+    correctIndex: 0,
+    explanation: "**Explanation:**\n" +
+      "`std::unique_ptr` represents unique, exclusive ownership. If copying were allowed, two `unique_ptr` instances would own the same address, causing a double-free crash when both destructors run. Moving transfers ownership from `p1` to `p2` and sets `p1` to `nullptr` safely.\n" +
+      "- *Vietnamese Note:* `std::unique_ptr` đại diện cho quyền sở hữu độc quyền (Exclusive Ownership) -> cấm sao chép để tránh lỗi giải phóng bộ nhớ 2 lần (Double Free)."
   },
   {
     id: "mcq_37",
     number: 37,
     chapter: "ch8",
-    chapterName: "Chapter 8 & Patterns: STL & Design Patterns",
+    chapterName: "Chapter 8 & Design Patterns: STL & Architecture",
     difficulty: "medium",
-    tags: ["std::accumulate", "<numeric>", "STL Algorithms"],
-    question: "What is the output of the following STL algorithm code?",
-    code: `#include <iostream>
-#include <vector>
-#include <numeric>
-using namespace std;
-
-int main() {
-    vector<int> v = {1, 2, 3, 4, 5};
-    int total = accumulate(v.begin(), v.end(), 10);
-    cout << total;
-    return 0;
-}`,
+    tags: ["Strategy Pattern", "Algorithm Encapsulation"],
+    question: "Which Design Pattern should be used when you need to switch sorting or payment algorithms dynamically at runtime without modifying client classes?",
+    code: `class PaymentContext {
+    IPaymentStrategy* strategy;
+public:
+    void setStrategy(IPaymentStrategy* s) { strategy = s; }
+    void pay(double amount) { strategy->pay(amount); }
+};`,
     options: [
-      "A. 15",
-      "B. 25",
-      "C. 10",
-      "D. Compilation error: accumulate requires 2 parameters."
+      "A. Strategy Pattern",
+      "B. Singleton Pattern",
+      "C. Prototype Pattern",
+      "D. Adapter Pattern"
     ],
-    correctIndex: 1,
-    explanation: `**Explanation:**
-\`std::accumulate(first, last, initValue)\` from \`<numeric>\` computes the sum of the range initialized with \`initValue\`.
-Sum of elements = $1 + 2 + 3 + 4 + 5 = 15$.
-Total = $15 + 10 = 25$.`
+    correctIndex: 0,
+    explanation: "**Explanation:**\n" +
+      "The **Strategy Pattern** defines a family of algorithms, encapsulates each one into a separate class conforming to a common interface, and makes them interchangeable at runtime inside a Context class.\n" +
+      "- *Vietnamese Note:* Strategy Pattern đóng gói các thuật toán riêng biệt và cho phép hoán đổi linh hoạt tại thời điểm chạy (runtime)."
   },
   {
     id: "mcq_38",
     number: 38,
     chapter: "ch8",
-    chapterName: "Chapter 8 & Patterns: STL & Design Patterns",
+    chapterName: "Chapter 8 & Design Patterns: STL & Architecture",
     difficulty: "hard",
-    tags: ["Factory Method Pattern", "Object Creation", "Design Patterns"],
-    question: "What is the key purpose of the **Factory Method Pattern** in OOP design?",
-    code: `Figure* FigureFactory::create(const string& type) {
-    if (type == "Circle") return new Circle();
-    if (type == "Rectangle") return new Rectangle();
-    return nullptr;
-}`,
+    tags: ["std::shared_ptr", "Circular Reference", "std::weak_ptr"],
+    question: "What problem arises when two objects hold `std::shared_ptr` pointing to each other (Circular Reference), and how is it resolved?",
+    code: `struct Node {
+    shared_ptr<Node> neighbor; // Circular dependency!
+};`,
     options: [
-      "A. To enforce that only one instance of Figure can ever exist.",
-      "B. To decouple the client code from concrete subclass implementations by providing an interface/method that instantiates objects dynamically based on runtime parameters.",
-      "C. To prevent memory allocation on the heap.",
-      "D. To convert dynamic dispatch into static binding."
+      "A. Memory leak because the reference count never drops to 0; resolved by breaking the cycle with `std::weak_ptr`.",
+      "B. Stack overflow at compile time; resolved by using raw pointers.",
+      "C. Deadlock in the operating system.",
+      "D. Segmentation fault upon creation."
     ],
-    correctIndex: 1,
-    explanation: `**Explanation:**
-The **Factory Method Pattern** delegates object creation to a specialized method. The client code only depends on the abstract base class (\`Figure\`) and the factory, making the system easy to extend with new shapes without modifying existing client business logic (Open-Closed Principle).`
+    correctIndex: 0,
+    explanation: "**Explanation:**\n" +
+      "When two objects reference each other via `std::shared_ptr`, their reference counts remain at least 1 even when all external references are lost. Destructors are never called, causing a permanent memory leak. Replacing one of the references with `std::weak_ptr` (a non-owning observer) resolves the cycle.\n" +
+      "- *Vietnamese Note:* Tham chiếu vòng (Circular Reference) giữa các `std::shared_ptr` khiến biến đếm không bao giờ về 0 -> gây rò rỉ bộ nhớ; khắc phục bằng cách dùng `std::weak_ptr`."
   },
   {
     id: "mcq_39",
     number: 39,
     chapter: "ch8",
-    chapterName: "Chapter 8 & Patterns: STL & Design Patterns",
+    chapterName: "Chapter 8 & Design Patterns: STL & Architecture",
     difficulty: "medium",
-    tags: ["std::sort", "<algorithm>", "Custom Comparator"],
-    question: "How do you sort a `std::vector<int> v` in **descending (decreasing)** order using `<algorithm>`?",
-    code: `vector<int> v = {5, 2, 8, 1, 9};`,
+    tags: ["STL Algorithms", "std::sort", "Custom Comparator"],
+    question: "When passing a custom comparator to `std::sort`, what mathematical property must the comparison function satisfy to avoid Undefined Behavior?",
+    code: `bool comp(const Item& a, const Item& b) {
+    return a.score < b.score; // Strict Weak Ordering
+}`,
     options: [
-      "A. `v.sort_descending();`",
-      "B. `sort(v.begin(), v.end(), greater<int>());`",
-      "C. `sort(v.end(), v.begin());`",
-      "D. `reverse_sort(v.begin(), v.end());`"
+      "A. It must return `true` when `a == b`.",
+      "B. It must implement **Strict Weak Ordering** (e.g., `comp(a, a)` MUST always return `false`).",
+      "C. It must take parameters by non-const reference.",
+      "D. It must be declared inside the `std` namespace."
     ],
     correctIndex: 1,
-    explanation: `**Explanation:**
-By default, \`std::sort(v.begin(), v.end())\` sorts in ascending order (using \`operator<\`). Passing the standard functor \`std::greater<int>()\` (or a lambda \`[](int a, int b){ return a > b; }\`) sorts the elements in descending order.`
+    explanation: "**Explanation:**\n" +
+      "The C++ standard requires comparators passed to `std::sort`, `std::map`, or `std::set` to satisfy **Strict Weak Ordering**. Specifically, `comp(a, a)` must return `false` (irreflexive). If you write `a <= b` instead of `a < b`, `std::sort` can access out-of-bounds memory and crash with a segmentation fault.\n" +
+      "- *Vietnamese Note:* Hàm so sánh trong `std::sort` bắt buộc phải thỏa mãn Strict Weak Ordering (`comp(a, a)` phải luôn trả về `false`). Viết nhầm `<=` thay vì `<` sẽ khiến sort bị crash!"
   },
   {
     id: "mcq_40",
     number: 40,
     chapter: "ch8",
-    chapterName: "Chapter 8 & Patterns: STL & Design Patterns",
+    chapterName: "Chapter 8 & Design Patterns: STL & Architecture",
     difficulty: "hard",
-    tags: ["Iterator Invalidation", "vector reallocation"],
-    question: "What causes **Iterator Invalidation** when calling `v.push_back(x)` on a `std::vector`?",
-    code: `vector<int> v = {1, 2, 3};
-auto it = v.begin();
-v.push_back(4); // What happens to 'it'?
-cout << *it;`,
+    tags: ["Validator Pattern", "Clean Architecture", "Real Exam 2024-2025"],
+    question: "In enterprise software design (such as Question 4 in the 2024-2025 Exam), why should input validation rules (format, range, prime check) be decomposed into separate `IValidator` classes instead of being written in one large function?",
+    code: `class IValidator {
+public:
+    virtual Expected<int> validate(const string& rawInput, int parsedVal) = 0;
+};`,
     options: [
-      "A. Iterators are automatically deleted by the garbage collector.",
-      "B. If the vector exceeds its current capacity, it allocates a new larger memory block elsewhere on the heap and copies old elements over, leaving previous iterators pointing to deallocated memory.",
-      "C. `push_back` always sets all existing iterators to `nullptr`.",
-      "D. There is no iterator invalidation in C++."
+      "A. To adhere to the Single Responsibility Principle (SRP) and Open/Closed Principle (OCP), making each rule independently testable, reusable, and extensible.",
+      "B. Because C++ compilers limit function length to 50 lines.",
+      "C. To automatically speed up string parsing by 100%.",
+      "D. To eliminate the need for classes."
     ],
-    correctIndex: 1,
-    explanation: `**Explanation:**
-When a \`std::vector\` runs out of capacity (\`size == capacity\`), \`push_back()\` reallocates a new contiguous block in the heap (typically $1.5\\times$ or $2\\times$ larger), copies existing elements, and frees the old buffer. Any existing iterators, pointers, or references pointing into the old buffer become **invalid/dangling**, and dereferencing them causes Undefined Behavior.`
+    correctIndex: 0,
+    explanation: "**Explanation (Kiến Trúc Đề Thi Thật 2024-2025):**\n" +
+      "Decomposing validation into separate classes conforming to `IValidator` ensures Single Responsibility (each validator tests one distinct concern) and Open/Closed Principle (new validation rules like `EvenNumberValidator` can be added without modifying existing UseCase logic).\n" +
+      "- *Vietnamese Note:* Tách các validator thành các lớp độc lập tuân thủ giao diện `IValidator` giúp tuân thủ nguyên lý Đơn trách nhiệm (SRP) và Đóng/Mở (OCP), dễ dàng mở rộng và viết unit test."
   },
 
   // =========================================================================
-  // CHAPTERS 2, 3, 4: CORE OOP, MEMORY, RULE OF THREE, STATIC (Q41 - Q50)
+  // CHAPTERS 2, 3, 4: CORE OOP, MEMORY, STATIC & RULE OF THREE (Q41 - Q50)
   // =========================================================================
   {
     id: "mcq_41",
     number: 41,
     chapter: "ch2_4",
-    chapterName: "Chapters 2-4: Core OOP, Memory & Lifecycle",
+    chapterName: "Chapters 2-4: Core OOP, Memory & Static",
     difficulty: "hard",
-    tags: ["Most Vexing Parse", "Function Declaration Trap"],
-    question: "What does the statement `MyClass obj();` do in C++?",
-    code: `class MyClass {
+    tags: ["Static Data Members", "Memory Segment", "Real Exam 2024-2025"],
+    question: "According to Question 1 of the 2024-2025 Final Exam, where are `static data members` allocated in memory, and where MUST they be defined?",
+    code: `class Student {
 public:
-    MyClass() { cout << "Constructed"; }
+    int id;           // Non-static
+    static int count; // Static
 };
-
-int main() {
-    MyClass obj(); // Bẫy kinh điển!
-    return 0;
-}`,
+// Where must count be defined?`,
     options: [
-      "A. It creates an object named `obj` using the default constructor and prints \"Constructed\".",
-      "B. It is interpreted by the compiler as a **Function Declaration** named `obj` that takes 0 parameters and returns a `MyClass` object. No object is created!",
-      "C. It throws a syntax error because parentheses are forbidden in C++.",
-      "D. It allocates a pointer `obj` on the heap."
+      "A. Allocated on the stack inside `main()`; defined inside the class constructor.",
+      "B. Allocated in the **Data Segment (Static/Global memory)**; MUST be explicitly defined and initialized **outside the class** at file scope (`int Student::count = 0;`).",
+      "C. Allocated on the heap; defined with `new int` in `main()`.",
+      "D. Allocated inside each object instance; defined in `main()`."
     ],
     correctIndex: 1,
-    explanation: `**Explanation:**
-This is the infamous **\"Most Vexing Parse\"** in C++. \`MyClass obj();\` matches the grammar for a forward declaration of a function named \`obj\` taking no arguments and returning \`MyClass\`. To construct an object with default constructor, write:
-\`MyClass obj;\` or \`MyClass obj{};\` (C++11 uniform initialization).`
+    explanation: "**Explanation (Câu 1 Đề Thi Thật 2024-2025):**\n" +
+      "Unlike non-static data members which reside inside each object instance (on stack or heap), static data members are allocated once in the static **Data Segment** and shared across all instances. C++ requires declaring them inside the class and providing a separate definition in file scope: `int Student::count = 0;`.\n" +
+      "- *Vietnamese Note:* Câu 1 đề thi thật 2024-2025: Biến static lưu trong Data Segment, tồn tại suốt chương trình và bắt buộc phải định nghĩa ngoài class: `int Student::count = 0;`."
   },
   {
     id: "mcq_42",
     number: 42,
     chapter: "ch2_4",
-    chapterName: "Chapters 2-4: Core OOP, Memory & Lifecycle",
-    difficulty: "medium",
-    tags: ["Rule of Three", "Copy Constructor", "Memory Management"],
-    question: "What comprises the classic C++ **Rule of Three** for classes that manage raw dynamic memory resources?",
-    code: null,
+    chapterName: "Chapters 2-4: Core OOP, Memory & Static",
+    difficulty: "hard",
+    tags: ["Member Initializer List", "Initialization Order Trap"],
+    question: "In what exact order are class member variables initialized in C++?",
+    code: `#include <iostream>
+using namespace std;
+
+class Demo {
+    int b;
+    int a;
+public:
+    Demo(int val) : a(val), b(a + 5) { // Notice initializer list order!
+        cout << a << ":" << b;
+    }
+};
+int main() {
+    Demo d(10);
+    return 0;
+}`,
     options: [
-      "A. Constructor, Getter, and Setter",
-      "B. Destructor, Copy Constructor, and Copy Assignment Operator (`operator=`)",
-      "C. Default Constructor, Parameterized Constructor, and Overloaded Operator+",
-      "D. Virtual Function, Friend Function, and Static Function"
+      "A. `a` is initialized first (10), then `b` is initialized (15), printing `10:15`.",
+      "B. `b` is initialized FIRST because it is **declared first in the class definition**, using uninitialized `a` (garbage memory), causing a subtle bug!",
+      "C. The compiler automatically reorders variable declarations in memory.",
+      "D. Compilation Error: `a` must be declared before `b`."
     ],
     correctIndex: 1,
-    explanation: `**Explanation:**
-The **Rule of Three** states that if a class explicitly manages dynamic resources (like \`new\` heap memory) and requires a custom **Destructor** to free it, it almost certainly also requires a custom **Copy Constructor** and **Copy Assignment Operator (\`operator=\`)** to perform Deep Copies and avoid double-free errors.`
+    explanation: "**Explanation (Bẫy Thứ Tự Khởi Tạo Biến Thành Viên):**\n" +
+      "In C++, member variables are initialized in the **order of their declaration in the class definition**, NOT the order they appear in the member initializer list! Because `int b;` is declared before `int a;`, `b` is initialized with `a + 5` before `a` has received its value (reading garbage data).\n" +
+      "- *Vietnamese Note:* Biến thành viên luôn được khởi tạo theo thứ tự khai báo trong class (`b` trước `a`), bất chấp thứ tự viết trong initializer list -> gây lỗi đọc rác!"
   },
   {
     id: "mcq_43",
     number: 43,
     chapter: "ch2_4",
-    chapterName: "Chapters 2-4: Core OOP, Memory & Lifecycle",
+    chapterName: "Chapters 2-4: Core OOP, Memory & Static",
     difficulty: "hard",
-    tags: ["Self-assignment Check", "operator="],
-    question: "Why is the self-assignment check `if (this == &other) return *this;` essential at the start of an overloaded `operator=`?",
-    code: `MyArray& operator=(const MyArray& other) {
-    if (this == &other) return *this; // Why?
-    delete[] data;
-    data = new int[other.size];
-    ...
+    tags: ["Rule of Three", "Copy Assignment Operator", "Self-assignment"],
+    question: "In the **Rule of Three**, why MUST the Copy Assignment Operator `operator=` check for self-assignment (`if (this == &other) return *this;`)?",
+    code: `MyString& MyString::operator=(const MyString& other) {
+    if (this == &other) return *this; // Why is this check critical?
+    delete[] buffer;
+    length = other.length;
+    buffer = new char[length + 1];
+    strcpy(buffer, other.buffer);
+    return *this;
 }`,
     options: [
-      "A. To prevent the compiler from optimizing away the assignment.",
-      "B. Because if `a = a;` is executed without this check, `delete[] data;` will deallocate the object's own buffer before copying from it, destroying the source data.",
-      "C. To convert the assignment operator into a move constructor.",
-      "D. To guarantee thread safety across multi-threaded execution."
+      "A. To prevent compiler optimization warnings.",
+      "B. If self-assigning (`a = a;`), deleting `buffer` without checking would destroy the very data you intend to copy from `other.buffer`, causing read-after-free and crash!",
+      "C. To prevent memory allocation on the stack.",
+      "D. To allow chaining like `a = b = c;`."
     ],
     correctIndex: 1,
-    explanation: `**Explanation:**
-If self-assignment occurs (\`a = a;\` or \`*ptrA = *ptrB;\` where both point to the same object), deleting the current heap buffer (\`delete[] data;\`) destroys the very data you intend to copy from \`other.data\`, leading to reading freed memory (Undefined Behavior / Crash).`
+    explanation: "**Explanation (Bản Chất Rule of Three):**\n" +
+      "If you execute `a = a;` without the self-assignment check, `delete[] buffer;` deallocates `this->buffer`, which is the SAME memory as `other.buffer`. Subsequent reading from `other.buffer` reads deallocated garbage memory, causing corrupted data or a segmentation fault.\n" +
+      "- *Vietnamese Note:* Trong `operator=`, nếu không kiểm tra tự gán (`this == &other`), lệnh `delete[] buffer` sẽ xóa luôn vùng nhớ của đối tượng nguồn -> khi copy dữ liệu sẽ bị crash!"
   },
   {
     id: "mcq_44",
     number: 44,
     chapter: "ch2_4",
-    chapterName: "Chapters 2-4: Core OOP, Memory & Lifecycle",
+    chapterName: "Chapters 2-4: Core OOP, Memory & Static",
     difficulty: "medium",
-    tags: ["explicit Keyword", "Implicit Conversion"],
-    question: "What is the purpose of declaring a single-parameter constructor as `explicit`?",
-    code: `class Fraction {
-public:
-    explicit Fraction(int numerator); // explicit
-};`,
+    tags: ["Prefix vs Postfix ++", "Operator Overloading"],
+    question: "What is the distinction in signature and return type between Prefix `++x` and Postfix `x++` operator overloading in C++?",
+    code: null,
     options: [
-      "A. It forces the constructor to be inlined by the compiler.",
-      "B. It prevents the compiler from using the constructor for **implicit type conversions** and copy-initialization (e.g. `Fraction f = 5;`).",
-      "C. It allows private access from external functions without friend declaration.",
-      "D. It makes the constructor callable only once during program lifetime."
+      "A. Prefix: `Type& operator++();` (returns by reference); Postfix: `Type operator++(int);` (takes dummy `int` parameter, returns by value).",
+      "B. Prefix takes `int` parameter; Postfix takes no parameters.",
+      "C. Both return `void`.",
+      "D. Prefix cannot be overloaded."
     ],
-    correctIndex: 1,
-    explanation: `**Explanation:**
-By default, any single-argument constructor in C++ serves as an implicit type conversion operator (e.g. converting \`int\` into \`Fraction\`). Marking it \`explicit\` blocks unintentional implicit conversions:
-- \`Fraction f(5);\` // OK
-- \`Fraction f = 5;\` // Compile error with explicit`
+    correctIndex: 0,
+    explanation: "**Explanation:**\n" +
+      "Prefix `++obj` increments first and returns `Type&` (reference to modified self). Postfix `obj++` must capture the old state, increment self, and return the old state by value `Type`, distinguished by a dummy `int` parameter in its signature.\n" +
+      "- *Vietnamese Note:* Tiền tố `++x` không có tham số và trả về tham chiếu `Type&`; Hậu tố `x++` có tham số giả `(int)` và trả về bản sao giá trị cũ `Type`."
   },
   {
     id: "mcq_45",
     number: 45,
     chapter: "ch2_4",
-    chapterName: "Chapters 2-4: Core OOP, Memory & Lifecycle",
-    difficulty: "medium",
-    tags: ["static Members", "Definition Out-of-class"],
-    question: "Where must a non-const `static` member variable of a class be defined and initialized in C++?",
-    code: `// Header.h
-class Counter {
-    static int count; // Declaration
-};`,
+    chapterName: "Chapters 2-4: Core OOP, Memory & Static",
+    difficulty: "hard",
+    tags: ["Most Vexing Parse", "Function Declaration Trap"],
+    question: "What does the line `Tracker t();` actually do in C++?",
+    code: `class Tracker { public: Tracker() {} };
+int main() {
+    Tracker t(); // What does this line do?
+    return 0;
+}`,
     options: [
-      "A. Inside the class declaration in the header file directly: `static int count = 0;`",
-      "B. In exactly one source file (`.cpp`) outside the class declaration: `int Counter::count = 0;`",
-      "C. Inside the `main()` function.",
-      "D. Static variables do not need definition; the compiler initializes them automatically."
+      "A. It instantiates an object `t` on the stack using default constructor.",
+      "B. It is interpreted as a **function declaration** named `t` that takes no arguments and returns a `Tracker` object (Most Vexing Parse).",
+      "C. It allocates a `Tracker` object on the heap.",
+      "D. It generates a compilation syntax error."
     ],
     correctIndex: 1,
-    explanation: `**Explanation:**
-In standard C++ (pre-C++17 \`inline static\`), non-const static member variables are only *declared* inside the class header. They must be explicitly *defined and initialized* in exactly one source file (\`.cpp\`) using the scope resolution operator (\`int Counter::count = 0;\`). Otherwise, the linker will report an \"undefined reference\" error.`
+    explanation: "**Explanation (Bẫy 1 Trong Sổ Tay - Most Vexing Parse):**\n" +
+      "According to C++ grammar disambiguation rules, anything that can be parsed as a declaration is parsed as a declaration. `Tracker t();` declares a function named `t` taking 0 parameters and returning `Tracker`. To instantiate an object with the default constructor, write `Tracker t;` (without parentheses).\n" +
+      "- *Vietnamese Note:* `Tracker t();` là khai báo HÀM `t()` chứ KHÔNG tạo đối tượng (Bẫy Most Vexing Parse). Viết đúng là `Tracker t;`."
   },
   {
     id: "mcq_46",
     number: 46,
     chapter: "ch2_4",
-    chapterName: "Chapters 2-4: Core OOP, Memory & Lifecycle",
-    difficulty: "easy",
-    tags: ["this Pointer", "Member Functions"],
-    question: "What is the `this` pointer in C++?",
-    code: null,
+    chapterName: "Chapters 2-4: Core OOP, Memory & Static",
+    difficulty: "medium",
+    tags: ["const member functions", "this pointer"],
+    question: "What type does the `this` pointer have inside a `const` member function `void Item::display() const`?",
+    code: `class Item {
+public:
+    void display() const {
+        // What is the type of 'this'?
+    }
+};`,
     options: [
-      "A. A reference to the parent base class.",
-      "B. A const pointer passed implicitly to all non-static member functions, holding the memory address of the current object instance calling the method.",
-      "C. A pointer that points to the first element of an array.",
-      "D. A keyword used to delete an object from heap memory."
+      "A. `Item*`",
+      "B. `const Item* const` (a constant pointer to a constant Item)",
+      "C. `const Item&`",
+      "D. `void*`"
     ],
     correctIndex: 1,
-    explanation: `**Explanation:**
-\`this\` is an implicit pointer parameter available inside all non-static member functions of a class. It points to the specific object instance that called the method, allowing access to its members (e.g. \`this->x = x;\`) or returning references to the current object (\`return *this;\`).`
+    explanation: "**Explanation:**\n" +
+      "Inside a const member function, `this` is of type `const Item* const`. You cannot modify any non-mutable member variables, nor call any non-const member functions through `this`.\n" +
+      "- *Vietnamese Note:* Trong hàm hằng `const`, con trỏ `this` có kiểu `const Item* const` -> ngăn chặn mọi hành vi thay đổi thuộc tính của đối tượng."
   },
   {
     id: "mcq_47",
     number: 47,
     chapter: "ch2_4",
-    chapterName: "Chapters 2-4: Core OOP, Memory & Lifecycle",
-    difficulty: "medium",
-    tags: ["Operator Overloading", "Stream Operators Chaining"],
-    question: "Why must overloaded stream operators `operator<<` and `operator>>` return references to `ostream&` and `istream&`?",
-    code: `ostream& operator<<(ostream& os, const Point& p) {
-    os << "(" << p.x << ", " << p.y << ")";
-    return os; // Why return os?
-}`,
+    chapterName: "Chapters 2-4: Core OOP, Memory & Static",
+    difficulty: "hard",
+    tags: ["delete vs delete[]", "Undefined Behavior"],
+    question: "What happens if an array allocated with `int* arr = new int[50];` is deallocated using `delete arr;` instead of `delete[] arr;`?",
+    code: `int* arr = new int[50];
+delete arr; // Notice missing []`,
     options: [
-      "A. To prevent the point object from being copied.",
-      "B. To allow chaining multiple stream insertions/extractions in a single line (e.g. `cout << p1 << p2 << endl;`).",
-      "C. Because stream objects cannot be passed by value due to private copy constructors.",
-      "D. Both B and C are correct."
+      "A. It safely deletes all 50 integers.",
+      "B. It causes **Undefined Behavior** (heap memory corruption and missed destructors for non-primitive types).",
+      "C. The compiler automatically corrects it to `delete[] arr`.",
+      "D. It only deletes the first byte."
     ],
-    correctIndex: 3,
-    explanation: `**Explanation:**
-1. \`std::ostream\` and \`std::istream\` have deleted copy constructors and cannot be copied by value.
-2. Returning \`os\` (as \`ostream&\`) allows operator chaining: in \`cout << a << b;\`, \`(cout << a)\` evaluates to \`cout\`, which is then used as the left-hand operand for \`<< b\`."`
+    correctIndex: 1,
+    explanation: "**Explanation (Bẫy 3 Trong Sổ Tay - delete vs delete[]):**\n" +
+      "Mismatching `new[]` with scalar `delete` is Undefined Behavior. For classes with destructors, `delete` only calls the destructor of the first element and corrupts heap bookkeeping metadata, leading to memory leaks and application crashes.\n" +
+      "- *Vietnamese Note:* Dùng `new[]` bắt buộc phải giải phóng bằng `delete[]`. Dùng `delete` thường là Undefined Behavior và làm hỏng bảng quản lý heap."
   },
   {
     id: "mcq_48",
     number: 48,
     chapter: "ch2_4",
-    chapterName: "Chapters 2-4: Core OOP, Memory & Lifecycle",
-    difficulty: "hard",
-    tags: ["new[] and delete[]", "Heap Array Allocation"],
-    question: "What undefined behavior or error occurs if dynamic array `int* a = new int[50];` is deallocated using `delete a;` instead of `delete[] a;`?",
-    code: `int* arr = new int[50];
-delete arr; // Notice missing [] !`,
+    chapterName: "Chapters 2-4: Core OOP, Memory & Static",
+    difficulty: "medium",
+    tags: ["mutable keyword", "const correctness"],
+    question: "What is the purpose of the `mutable` keyword on a class member variable in C++?",
+    code: `class Cache {
+    mutable int accessCount = 0;
+public:
+    int getData() const {
+        accessCount++; // Allowed because of mutable!
+        return 42;
+    }
+};`,
     options: [
-      "A. It compiles and runs safely with no issues because `int` is a primitive type.",
-      "B. It results in **Undefined Behavior**: for objects with destructors, only the first element's destructor will be invoked, and heap metadata can be corrupted.",
-      "C. It throws a `std::bad_alloc` exception at runtime.",
-      "D. The compiler automatically corrects `delete` to `delete[]`."
+      "A. It allows the variable to be modified even inside `const` member functions.",
+      "B. It makes the variable accessible from any package.",
+      "C. It prevents multi-threaded race conditions.",
+      "D. It converts the variable to a static member."
     ],
-    correctIndex: 1,
-    explanation: `**Explanation:**
-Pairing \`new[]\` with scalar \`delete\` (without brackets) is strictly **Undefined Behavior** in C++. For arrays of class objects, the runtime stores the array size in heap metadata and needs \`delete[]\` to call destructors for all 50 elements. Mixing scalar and array forms corrupts the heap manager.`
+    correctIndex: 0,
+    explanation: "**Explanation:**\n" +
+      "The `mutable` specifier permits a member variable to be modified even within `const` member functions. It is commonly used for mutexes, caching, and access counters that do not affect the logical constness of the object.\n" +
+      "- *Vietnamese Note:* Từ khóa `mutable` cho phép biến thành viên có thể bị thay đổi giá trị ngay cả trong các hàm hằng `const`."
   },
   {
     id: "mcq_49",
     number: 49,
     chapter: "ch2_4",
-    chapterName: "Chapters 2-4: Core OOP, Memory & Lifecycle",
-    difficulty: "easy",
-    tags: ["const Member Functions", "const Correctness"],
-    question: "What does the `const` keyword signify at the end of a member function declaration: `double getArea() const;`?",
-    code: `class Circle {
-    double radius;
-public:
-    double getArea() const; // const here
+    chapterName: "Chapters 2-4: Core OOP, Memory & Static",
+    difficulty: "hard",
+    tags: ["Operator Overloading", "Comparison Operators", "Real Exam 2024-2025"],
+    question: "According to Question 3 of the 2024-2025 Exam, when implementing 6 comparison operators (`==`, `!=`, `<`, `<=`, `>`, `>=`) for a class based on a computed score (`getPerformanceScore()`), which design practice is most maintainable?",
+    code: `class Computer {
+    float getPerformanceScore() const;
+    // How should comparison operators be implemented?
 };`,
     options: [
-      "A. It returns a constant double that cannot be modified.",
-      "B. It guarantees that the function will not modify any non-mutable member variables of the calling object, allowing it to be invoked on `const` objects.",
-      "C. It prevents other functions from overloading `getArea()`.",
-      "D. It makes the function static."
+      "A. Implement `operator==` and `operator<` directly, and express all other 4 operators (`!=`, `<=`, `>`, `>=`) in terms of `==` and `<`.",
+      "B. Copy-paste the entire multiplication formula in all 6 operator methods.",
+      "C. Use dynamic casting inside each operator.",
+      "D. Overload operators as private member functions."
     ],
-    correctIndex: 1,
-    explanation: `**Explanation:**
-A \`const\` member function commits not to modify any state (member variables) of the object instance it is called on. This allows the method to be safely called on \`const\` instances of the class (e.g. \`const Circle c(5); c.getArea();\`).`
+    correctIndex: 0,
+    explanation: "**Explanation (Thiết Kế Toán Tử Câu 3 Đề Thi 2024-2025):**\n" +
+      "The standard C++ idiom for comparison operators is to implement `==` and `<`, and derive `!=` as `!(*this == other)`, `>` as `other < *this`, `<=` as `!(other < *this)`, and `>=` as `!(*this < other)`. This eliminates duplicated logic and guarantees consistent ordering semantics.\n" +
+      "- *Vietnamese Note:* Chuẩn thiết kế toán tử so sánh: Cài đặt hàm `==` và `<`, sau đó định nghĩa 4 toán tử còn lại (`!=`, `<=`, `>`, `>=`) thông qua `==` và `<` để tránh trùng lặp code."
   },
   {
     id: "mcq_50",
     number: 50,
     chapter: "ch2_4",
-    chapterName: "Chapters 2-4: Core OOP, Memory & Lifecycle",
-    difficulty: "medium",
-    tags: ["Default Constructor", "Compiler Generation Rules"],
-    question: "When does the C++ compiler automatically generate a default parameterless constructor for a class?",
-    code: null,
+    chapterName: "Chapters 2-4: Core OOP, Memory & Static",
+    difficulty: "hard",
+    tags: ["Explicit Constructor", "Implicit Conversion Trap"],
+    question: "Why should single-argument constructors generally be declared with the `explicit` keyword in C++?",
+    code: `class Array {
+public:
+    explicit Array(int size); // Why explicit?
+};
+void process(Array a);
+// process(50); // What does explicit prevent here?`,
     options: [
-      "A. For every class under all circumstances.",
-      "B. Only when the programmer has **NOT declared ANY constructor** (default, parameterized, or copy) in the class.",
-      "C. Whenever at least one virtual function is declared.",
-      "D. Only when inheriting from an abstract base class."
+      "A. To prevent the compiler from performing unwanted implicit type conversions (e.g. accidentally converting integer `50` into an `Array` of size 50 when calling `process(50)`).",
+      "B. To make the constructor public.",
+      "C. To prevent memory allocation.",
+      "D. To enable operator overloading."
     ],
-    correctIndex: 1,
-    explanation: `**Explanation:**
-The compiler only synthesizes a default parameterless constructor if **no constructors of any kind** are declared by the user. If you define even a single constructor (e.g. \`MyClass(int x)\`), the compiler ceases to provide the default parameterless constructor automatically, making \`MyClass obj;\` an error unless you explicitly write \`MyClass() = default;\` or define it manually.`
+    correctIndex: 0,
+    explanation: "**Explanation:**\n" +
+      "Without `explicit`, any single-argument constructor acts as an implicit conversion operator. A call like `process(50)` would silently construct a temporary `Array(50)` and pass it, leading to subtle bugs. The `explicit` keyword forces callers to write `process(Array(50))` explicitly.\n" +
+      "- *Vietnamese Note:* Từ khóa `explicit` ngăn chặn compiler tự động ép kiểu ngầm định nguy hiểm (như tự biến số nguyên `50` thành mảng `Array(50)`)."
   }
 ];

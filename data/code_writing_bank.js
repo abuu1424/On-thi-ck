@@ -6,11 +6,125 @@
 
 var CODE_WRITING_BANK = [
   // =========================================================================
-  // CHƯƠNG 2, 3, 4: CLASS, QUẢN LÝ BỘ NHỚ & RULE OF THREE (Bài 1 - Bài 4)
+  // BÀI ĐẶC BIỆT: ĐỀ THI CHÍNH THỨC 2024-2025 (BÀI 1)
   // =========================================================================
   {
-    id: "write_1",
+    id: "write_computer",
     number: 1,
+    chapter: "ch2_4",
+    chapterName: "Chương 2-4: Operator Overloading & Stream (Đề Thi Thật 2024-2025)",
+    difficulty: "medium",
+    points: "3.0 điểm",
+    title: "Bài 1 (ĐỀ THI THẬT 2024-2025): Xây Dựng Lớp Computer Đầy Đủ 6 Toán Tử So Sánh & Stream I/O",
+    description: `Implement a C++ class named \`Computer\` that models a computer's specifications and supports full comparison operators as well as input/output streaming.
+Specifically, the class follows the specification below:
+- **Attributes:**
+  - \`brand\` (string): Brand name of the computer
+  - \`ram\` (int): Unit is GB
+  - \`cpu\` (float): Unit is GHz
+- **Methods:**
+  - \`getPerformanceScore()\` returns \`ram * cpu\`
+- **Operator Overloads:**
+  - Comparison: \`==\`, \`!=\`, \`<\`, \`<=\`, \`>\`, \`>=\` based on \`getPerformanceScore()\`
+  - Stream: \`>>\` to input \`brand ram cpu\`
+  - Stream: \`<<\` to output \`"Brand: <brand>, RAM: <ram>GB, CPU: <cpu>GHz"\``,
+    checklist: [
+      { id: "c1", text: "Khai báo đầy đủ 3 thuộc tính brand (string), ram (int), cpu (float) (+0.5đ)", points: 0.5 },
+      { id: "c2", text: "Constructor và phương thức getPerformanceScore() const tính ram * cpu (+0.5đ)", points: 0.5 },
+      { id: "c3", text: "Nạp chồng đầy đủ 6 toán tử so sánh ==, !=, <, <=, >, >= dựa trên điểm hiệu năng (+1.0đ)", points: 1.0 },
+      { id: "c4", text: "Nạp chồng operator>> nhập brand >> ram >> cpu (+0.5đ)", points: 0.5 },
+      { id: "c5", text: "Nạp chồng operator<< in đúng mẫu 'Brand: <brand>, RAM: <ram>GB, CPU: <cpu>GHz' (+0.5đ)", points: 0.5 }
+    ],
+    starterCode: `#include <iostream>
+#include <string>
+using namespace std;
+
+class Computer {
+private:
+    string brand;
+    int ram;    // GB
+    float cpu;  // GHz
+public:
+    Computer(string b = "", int r = 0, float c = 0.0f);
+
+    float getPerformanceScore() const;
+
+    // 6 Comparison operators
+    bool operator==(const Computer& other) const;
+    bool operator!=(const Computer& other) const;
+    bool operator<(const Computer& other) const;
+    bool operator<=(const Computer& other) const;
+    bool operator>(const Computer& other) const;
+    bool operator>=(const Computer& other) const;
+
+    // Stream operators
+    friend istream& operator>>(istream& is, Computer& comp);
+    friend ostream& operator<<(ostream& os, const Computer& comp);
+};
+
+// TODO: Cài đặt chi tiết các phương thức ở đây...
+`,
+    solutionCode: `#include <iostream>
+#include <string>
+using namespace std;
+
+class Computer {
+private:
+    string brand;
+    int ram;   // GB
+    float cpu; // GHz
+
+public:
+    // Constructor
+    Computer(string b = "", int r = 0, float c = 0.0f)
+        : brand(b), ram(r), cpu(c) {}
+
+    // Method tính điểm hiệu năng
+    float getPerformanceScore() const {
+        return ram * cpu;
+    }
+
+    // 6 Toán tử so sánh dựa trên điểm hiệu năng
+    bool operator==(const Computer& other) const {
+        return getPerformanceScore() == other.getPerformanceScore();
+    }
+
+    bool operator!=(const Computer& other) const {
+        return !(*this == other);
+    }
+
+    bool operator<(const Computer& other) const {
+        return getPerformanceScore() < other.getPerformanceScore();
+    }
+
+    bool operator<=(const Computer& other) const {
+        return getPerformanceScore() <= other.getPerformanceScore();
+    }
+
+    bool operator>(const Computer& other) const {
+        return getPerformanceScore() > other.getPerformanceScore();
+    }
+
+    bool operator>=(const Computer& other) const {
+        return getPerformanceScore() >= other.getPerformanceScore();
+    }
+
+    // Toán tử nhập luồng >> (brand ram cpu)
+    friend istream& operator>>(istream& is, Computer& comp) {
+        is >> comp.brand >> comp.ram >> comp.cpu;
+        return is;
+    }
+
+    // Toán tử xuất luồng << ("Brand: <brand>, RAM: <ram>GB, CPU: <cpu>GHz")
+    friend ostream& operator<<(ostream& os, const Computer& comp) {
+        os << "Brand: " << comp.brand << ", RAM: " << comp.ram << "GB, CPU: " << comp.cpu << "GHz";
+        return os;
+    }
+};`
+  },
+  {
+    id: "write_1",
+    number: 2,
     chapter: "ch2_4",
     chapterName: "Chương 2-4: Rule of Three & Cấp Phát Động",
     difficulty: "hard",
@@ -156,7 +270,7 @@ public:
   },
   {
     id: "write_2",
-    number: 2,
+    number: 3,
     chapter: "ch2_4",
     chapterName: "Chương 2-4: Lớp Động & Toán Tử Số Học",
     difficulty: "medium",
@@ -268,7 +382,7 @@ public:
   },
   {
     id: "write_3",
-    number: 3,
+    number: 4,
     chapter: "ch2_4",
     chapterName: "Chương 2-4: Nạp Chồng Toán Tử Toàn Diện",
     difficulty: "easy",
@@ -379,7 +493,7 @@ public:
   },
   {
     id: "write_4",
-    number: 4,
+    number: 5,
     chapter: "ch2_4",
     chapterName: "Chương 2-4: Tiền Tố & Hậu Tố",
     difficulty: "medium",
@@ -466,7 +580,7 @@ public:
   // =========================================================================
   {
     id: "write_5",
-    number: 5,
+    number: 6,
     chapter: "ch5",
     chapterName: "Chương 5: Kế Thừa & Mảng Con Trỏ Đa Hình",
     difficulty: "hard",
@@ -603,7 +717,7 @@ public:
   },
   {
     id: "write_6",
-    number: 6,
+    number: 7,
     chapter: "ch5",
     chapterName: "Chương 5: Phân Cấp Hình Học (Shape Hierarchy)",
     difficulty: "medium",
@@ -678,7 +792,7 @@ double totalArea(const vector<Shape*>& shapes) {
   },
   {
     id: "write_7",
-    number: 7,
+    number: 8,
     chapter: "ch5",
     chapterName: "Chương 5: Kế Thừa Tài Khoản Ngân Hàng",
     difficulty: "medium",
@@ -768,7 +882,7 @@ public:
   },
   {
     id: "write_8",
-    number: 8,
+    number: 9,
     chapter: "ch5",
     chapterName: "Chương 5: Đa Hình & Game Entity",
     difficulty: "medium",
@@ -861,7 +975,7 @@ public:
   // =========================================================================
   {
     id: "write_9",
-    number: 9,
+    number: 10,
     chapter: "ch6",
     chapterName: "Chương 6: File I/O Nhị Phân (Binary File)",
     difficulty: "hard",
@@ -943,7 +1057,7 @@ vector<Student> readFromFile(const string& filename) {
   },
   {
     id: "write_10",
-    number: 10,
+    number: 11,
     chapter: "ch6",
     chapterName: "Chương 6: Quan Hệ Composition Trong Class",
     difficulty: "medium",
@@ -1045,7 +1159,7 @@ public:
   // =========================================================================
   {
     id: "write_11",
-    number: 11,
+    number: 12,
     chapter: "ch7",
     chapterName: "Chương 7: Template Class & Ngoại Lệ",
     difficulty: "hard",
@@ -1154,7 +1268,7 @@ public:
   },
   {
     id: "write_12",
-    number: 12,
+    number: 13,
     chapter: "ch7",
     chapterName: "Chương 7: Template Class SafeQueue<T>",
     difficulty: "medium",
@@ -1243,7 +1357,7 @@ public:
   },
   {
     id: "write_13",
-    number: 13,
+    number: 14,
     chapter: "ch7",
     chapterName: "Chương 7: Template Ma Trận Matrix<T>",
     difficulty: "hard",
@@ -1372,7 +1486,7 @@ public:
   },
   {
     id: "write_14",
-    number: 14,
+    number: 15,
     chapter: "ch7",
     chapterName: "Chương 7: Custom Exception Class",
     difficulty: "easy",
@@ -1422,7 +1536,7 @@ double safeDivide(double a, double b) {
   // =========================================================================
   {
     id: "write_15",
-    number: 15,
+    number: 16,
     chapter: "ch8",
     chapterName: "Chương 8: STL std::map & Thống Kê Tần Suất",
     difficulty: "medium",

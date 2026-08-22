@@ -1,104 +1,65 @@
 # 🎓 HƯỚNG DẪN SỬ DỤNG - OOP C++ EXAM MASTER (FIT-HCMUS)
 
-Hệ thống luyện thi cuối kỳ môn **Lập Trình Hướng Đối Tượng (OOP C++)** chuẩn cấu trúc đề thi Khoa CNTT - ĐH Khoa Học Tự Nhiên ĐHQG-HCM (FIT-HCMUS) bám sát giáo trình Slide Tuần 2 → Tuần 8.
+Hệ thống luyện thi cuối kỳ môn **Lập Trình Hướng Đối Tượng (OOP C++)** tích hợp **Đề Thi Chính Thức Năm Học 2024-2025 (100 phút)** và 4 phân hệ luyện thi chuyên sâu theo chuẩn độ khó cao nhất của Khoa CNTT - ĐH Khoa Học Tự Nhiên ĐHQG-HCM (FIT-HCMUS).
 
 ---
 
 ## 🚀 1. Hướng Dẫn Khởi Chạy Nhanh
 
-Ứng dụng được thiết kế dạng **Single Page Application (HTML/CSS/JS thuần)**, không yêu cầu cài đặt môi trường backend hay database:
+Ứng dụng là **Single Page Application (HTML/CSS/JS thuần)**:
 
-1. **Cách 1 (Đơn giản nhất):** 
-   - Nhấp đúp chuột trực tiếp vào file [`index.html`](file:///Users/phangiahuy290407gmail.com/Documents/bài tập/file pdf/slide bài giảng/hk3/oop/On thi ck/index.html) để mở trên bất kỳ trình duyệt web nào (Google Chrome, Microsoft Edge, Safari, Firefox,...).
-2. **Cách 2 (Dành cho VS Code / IDE):**
-   - Cài extension `Live Server` trong VS Code, nhấp chuột phải vào `index.html` và chọn **Open with Live Server**.
+1. **Cách 1 (Mở trực tiếp):** 
+   - Nhấp đúp chuột vào file [`index.html`](file:///Users/phangiahuy290407gmail.com/Documents/bài tập/file pdf/slide bài giảng/hk3/oop/On thi ck/index.html) để mở trên bất kỳ trình duyệt web nào (Chrome, Edge, Safari, Firefox,...).
+2. **Cách 2 (Mở với VS Code Live Server):**
+   - Chuột phải vào `index.html` $\rightarrow$ chọn **Open with Live Server**.
 
 ---
 
-## 🎯 2. Trọn Bộ 4 Phân Hệ Luyện Thi Trên Thanh Điều Hướng
+## 🎯 2. Trọn Bộ 5 Phân Hệ Trên Giao Diện Ứng Dụng
 
 ```
-[ 📝 Trắc Nghiệm (50) ]  |  [ 🔍 Dạng 2: Đọc Code (35) ]  |  [ 💻 Dạng 3: Viết Code (15) ]  |  [ 🏛️ Dạng 4: Thiết Kế (10) ]  |  [ ⚡ 10 Bẫy Code ]
+[ ⭐ Đề Thi Thật 2024-2025 ]  |  [ 📝 Trắc Nghiệm (50) ]  |  [ 🔍 Dạng 2: Đọc Code (35) ]  |  [ 💻 Dạng 3: Viết Code (16) ]  |  [ 🏛️ Dạng 4: Thiết Kế (11) ]  |  [ ⚡ 10 Bẫy Code ]
 ```
 
 ---
 
-### PHÂN HỆ 1: 📝 TRẮC NGHIỆM TIẾNG ANH (50 MCQs CHUẨN HÓA)
-- **Nội dung:** 50 câu hỏi trắc nghiệm tiếng Anh, trọng tâm từ Chương 5 trở đi (Kế thừa, Đa hình, File I/O, Template, Exception, STL, Design Patterns) & Bổ trợ Chương 2-4.
-- **Tính năng:**
-  - Lọc theo chương & Lọc theo độ khó (🟢 Easy, 🟡 Medium, 🔴 Hard/Trap).
-  - **Question Navigator Grid (1..50)** nhảy nhanh câu và tự động phát sáng viền vàng tại câu đang làm dở.
-  - ⚡ **Chế độ Luyện Tập:** Hiện giải thích chi tiết song ngữ ngay lập tức.
-  - 📝 **Chế độ Thi Thử:** Nộp bài tính điểm 10.0đ và phân tích năng lực từng chương.
+### ⭐ PHÂN HỆ ĐẶC BIỆT: ĐỀ THI CHÍNH THỨC CUỐI KỲ (HK3 / 2024-2025 - 100 PHÚT)
+Bám sát 100% tài liệu 4 trang ảnh đề thi thực tế (`trang1.jpg` $\rightarrow$ `trang4.jpg`):
+- **Câu 1 (1.0đ - Lý thuyết):** Phân biệt bản chất `static data members` vs `non-static data members` (quyền sở hữu, vùng nhớ Data Segment, vòng đời, khởi tạo ngoài class). Kèm bảng barem và lời giải mẫu.
+- **Câu 2 (2.0đ - Đọc Code Đoán Output):** Cây kế thừa `Shape` $\rightarrow$ `Rectangle` chứa `Point _topLeft`. Bẫy cực hiểm: **Copy Constructor của Rectangle không gọi Shape(p) và `_topLeft(...)` trong Member Initializer List** $\rightarrow$ kích hoạt Default Constructor của Shape và Point. Kèm công cụ Diff Check 12 dòng và timeline giải thích chi tiết.
+- **Câu 3 (3.0đ - Viết Code C++):** Xây dựng lớp `Computer` (brand, ram, cpu, `getPerformanceScore()`), đầy đủ 6 toán tử so sánh `==`, `!=`, `<`, `<=`, `>`, `>=` và 2 toán tử stream `>>`, `<<`. Tích hợp Code Editor hỗ trợ phím Tab, checklist barem tự chấm và mã nguồn mẫu.
+- **Câu 4 (4.0đ - Thiết Kế Kiến Trúc Chuẩn Google C++ Style):** Hệ thống `IntegerRequestUseCase` + `Expected<T>` + **Validator Architecture** kiểm tra số nguyên tố $[1, 100]$. Cung cấp bảng phân rã vai trò, sơ đồ lớp UML và full mã nguồn vượt qua 5 test cases thực tế.
 
 ---
 
-### PHÂN HỆ 2: 🔍 DẠNG 2 - ĐỌC CODE ĐOÁN OUTPUT & BẪY CODE (35 BÀI - 2.0 ĐIỂM)
-- **Nội dung:** 35 bài tập truy vết mã nguồn C++, nhận diện 10 bẫy code kinh điển (Khai báo hàm `PhanSo t()`, Virtual Destructor, Object Slicing, Stack Unwinding, EOF lặp dư 1 lần...).
-- **Tính năng:**
-  - **Công cụ Diff Check tự động:** Gõ output bạn đoán $\rightarrow$ Bấm `🔍 Kiểm tra Output` để so khớp màu xanh lá khi đúng, hoặc hiển thị so sánh 2 cột khi chưa khớp.
-  - **Accordion Phân tích từng bước (Step-by-step trace):** Xem timeline giải thích chi tiết từng dòng lệnh từ `main()`.
-  - **Question Navigator Grid (1..35)** theo dõi trạng thái làm bài real-time.
+### 📝 PHÂN HỆ 1: TRẮC NGHIỆM TIẾNG ANH (50 MCQs CHUẨN HÓA)
+- 50 câu trắc nghiệm tiếng Anh, trọng tâm Chương 5 trở đi & Bổ trợ Chương 2-4.
+- Lọc theo chương & độ khó, **Question Navigator (1..50)**, chế độ Luyện tập vs Thi thử 10.0đ.
 
 ---
 
-### PHÂN HỆ 3: 💻 DẠNG 3 - VIẾT CODE C++ HOÀN CHỈNH (15 BÀI - 3.0 ĐIỂM)
-- **Nội dung:** 15 bài tập lập trình C++ điển hình:
-  - `MyString` (Rule of Three, Deep Copy, `operator=`, toán tử stream `>>`/`<<`, `[]`).
-  - `VectorND` & `PhanSo` rút gọn & `Time` (tiền tố/hậu tố).
-  - Cây kế thừa đa hình `NhanVien` (`CongTy`), `ShapeHierarchy`, `Account`, `Character`.
-  - Ghi file nhị phân `Binary File I/O` cho Sinh viên, Quản lý đơn hàng `Order` (Composition).
-  - Template Class `SafeStack<T>`, `SafeQueue<T>`, `Matrix<T>` ném ngoại lệ an toàn.
-  - Lớp ngoại lệ tùy biến `DivisionByZeroException` kế thừa `std::exception`.
-  - Lớp `WordFrequencyTracker` sử dụng `std::map` và STL algorithm.
-- **Tính năng:**
-  - **Code Editor tích hợp:** Hỗ trợ phím `Tab` thụt lề 4 khoảng trắng, nút copy code, khôi phục starter code.
-  - **Barem Tự Đánh Giá (Live Checklist):** Tích chọn các tiêu chí kỹ thuật để tự chấm điểm trên thang 3.0đ.
-  - **Mã nguồn chuẩn của giảng viên (Teacher's Solution Code):** Accordion hiển thị lời giải tối ưu và nút copy code mẫu.
-  - **Question Navigator Grid (1..15).**
+### 🔍 PHÂN HỆ 2: DẠNG 2 - ĐỌC CODE ĐOÁN OUTPUT & BẪY CODE (35 BÀI - 2.0Đ)
+- 35 bài tập truy vết mã nguồn C++ với độ khó bằng và cao hơn đề thật.
+- Tích hợp công cụ **Diff Check tự động** (so khớp màu xanh/đỏ) và **Timeline Step-by-step trace**.
 
 ---
 
-### PHÂN HỆ 4: 🏛️ DẠNG 4 - THIẾT KẾ KIẾN TRÚC & DESIGN PATTERNS (10 BÀI - 3.0 ĐIỂM)
-- **Nội dung:** 10 bài tập tình huống thực tế:
-  - **Singleton Pattern:** `AppLogger` ghi log toàn cục, `ConfigManager` cấu hình hệ thống, `AudioEngine` âm thanh game.
-  - **Iterator Pattern:** `ProductCollection` duyệt sản phẩm không lộ mảng, `Playlist` duyệt bài hát ngược, `FileSystemTree` duyệt cây thư mục.
-  - **Factory Method Pattern:** `NotificationFactory` gửi tin nhắn đa kênh (SMS, Email, Push), `DocumentFactory` xuất tài liệu (PDF, Word, HTML), `MonsterSpawner` sinh quái vật trong game.
-  - **Strategy Pattern:** `PaymentStrategy` thanh toán linh hoạt (Momo, CreditCard, COD).
-- **Tính năng:**
-  - **Bước 1:** Trắc nghiệm lựa chọn Design Pattern phù hợp + Đánh giá & giải thích lý do.
-  - **Bước 2:** Bảng phân rã vai trò thành phần kiến trúc (Role Mapping: Interface, Concrete, Aggregate, Client...).
-  - **Bước 3:** Sơ đồ lớp UML (Class Diagram) trực quan.
-  - **Bước 4:** Khung code kiến trúc C++ Skeleton chuẩn chỉ của giảng viên.
-  - **Question Navigator Grid (1..10).**
+### 💻 PHÂN HỆ 3: DẠNG 3 - VIẾT CODE C++ HOÀN CHỈNH (16 BÀI - 3.0Đ)
+- 16 bài tập lập trình C++ (`Computer`, `MyString`, `VectorND`, `CongTy/NhanVien`, `SafeStack<T>`, `SafeQueue<T>`, `Binary File I/O`, `DivisionByZeroException`...).
+- Code Editor có phím Tab, checklist tiêu chí kỹ thuật, mã nguồn chuẩn của giảng viên.
 
 ---
 
-## ⚡ 3. Các Tiện Ích Hỗ Trợ Đặc Biệt
-
-1. **⚡ Sổ Tay 10 Bẫy Code Kinh Điển:** Tra cứu nhanh bẫy thi kèm khung so sánh Code Sai (Đỏ) vs Code Đúng (Xanh).
-2. **⏱️ Đồng Hồ Đếm Ngược 90 Phút:** Tự động cảnh báo màu vàng khi còn dưới 15 phút và màu đỏ khi còn dưới 5 phút.
-3. **🌓 Giao Diện Sáng / Tối (Dark / Light Theme):** Tự động lưu lựa chọn theme.
-4. **💾 Tự Động Lưu Tiến Độ (Auto-save LocalStorage):** Lưu lại 100% câu trả lời, code đã gõ, checklist đã tích và phân hệ đang mở.
+### 🏛️ PHÂN HỆ 4: DẠNG 4 - THIẾT KẾ KIẾN TRÚC & PATTERNS (11 BÀI - 3.0Đ/4.0Đ)
+- 11 bài tập thiết kế hệ thống (`Validator Architecture Google Style`, `AppLogger`, `ConfigManager`, `AudioEngine`, `ProductCollection`, `Playlist`, `NotificationFactory`, `DocumentFactory`, `PaymentStrategy`...).
+- Trắc nghiệm Pattern, Bảng vai trò (Role Mapping), Sơ đồ UML và C++ Skeleton.
 
 ---
 
-## 📂 4. Cấu Trúc Thư Mục Dự Án
+## ⚡ 3. Tiện Ích Hỗ Trợ Đắc Lực
+1. **⚡ Sổ Tay 10 Bẫy Code:** Tra cứu nhanh các bẫy code hay gài trong đề thi FIT-HCMUS.
+2. **⏱️ Đồng Hồ Đếm Ngược 100 Phút:** Tự động cảnh báo màu vàng và đỏ khi sắp hết giờ.
+3. **💾 Tự Động Lưu Tiến Độ (Auto-save LocalStorage):** Lưu lại 100% câu trả lời, code đã gõ, checklist đã tích.
+4. **🌓 Giao Diện Dark / Light Mode.**
 
-```
-├── index.html                 # Giao diện chính của ứng dụng
-├── style.css                  # Toàn bộ định dạng UI, màu sắc & animations
-├── app.js                     # Bộ xử lý tương tác cho cả 4 phân hệ
-├── README.md                  # Hướng dẫn sử dụng hệ thống
-├── OOP_TongHop_OnThi.md       # Cẩm nang tóm tắt lý thuyết Tuần 2 → 8
-└── data/
-    ├── mcq_english_50.js      # 50 câu hỏi trắc nghiệm tiếng Anh
-    ├── code_trace_bank.js     # 35 bài tập Dạng 2 - Đọc code đoán output
-    ├── code_writing_bank.js   # 15 bài tập Dạng 3 - Viết code C++
-    ├── design_pattern_bank.js # 10 bài tập Dạng 4 - Thiết kế kiến trúc
-    ├── trap_cheatsheet.js     # Sổ tay 10 bẫy code kinh điển
-    ├── de1.js → de5.js        # 5 Bộ đề thi chuẩn 90 phút
-    └── exams.js               # File tổng hợp và liên kết dữ liệu
-```
-
-Chúc bạn ôn tập hiệu quả và chinh phục điểm số tuyệt đối trong kỳ thi cuối kỳ OOP C++! 🚀
+Chúc bạn ôn tập xuất sắc và đạt điểm tối đa trong kỳ thi cuối kỳ OOP C++! 🚀

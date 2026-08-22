@@ -9,11 +9,166 @@
 
 var DESIGN_PATTERN_BANK = [
   // =========================================================================
-  // SINGLETON PATTERN (Bài 1 - Bài 3)
+  // BÀI ĐẶC BIỆT: ĐỀ THI CHÍNH THỨC 2024-2025 (BÀI 1)
   // =========================================================================
   {
-    id: "pattern_1",
+    id: "pattern_real_exam",
     number: 1,
+    category: "factory",
+    categoryName: "Kiến Trúc Enterprise: Validator Strategy / Chain (Đề Thi Thật 2024-2025)",
+    difficulty: "hard",
+    points: "4.0 điểm",
+    title: "Bài 1 (ĐỀ THI THẬT 2024-2025): Kiến Trúc Data Validator (Google C++ Style Expected<T>)",
+    scenario: `Chương trình nhận vào một số nguyên tố trong khoảng $[1, 100]$ từ bàn phím.
+Thay vì dùng ngoại lệ (\`try-catch\`), hệ thống áp dụng cấu trúc \`Expected<T>\` theo Google C++ Style Guide:
+- \`Expected<T>\`: \`bool success; string message; T data;\`
+- Helper functions: \`succeed<T>(val)\` và \`fail<T>(msg)\`.
+
+Yêu cầu kiến trúc:
+Thiết kế hệ thống **Data Validators** linh hoạt, dễ mở rộng (Open/Closed Principle) thông qua giao diện chung:
+1. \`ValidIntegerFormatValidator\`: Kiểm tra chuỗi nhập có phải định dạng số nguyên hợp lệ không rỗng.
+2. \`IsPrimeValidator\`: Kiểm tra số có phải số nguyên tố không (dùng \`Integer::isPrime(n)\`).
+3. \`ValidIntegerValuesValidator\`: Kiểm tra số có nằm trong phạm vi \`[min, max]\` hay không.
+4. Lớp \`IntegerRequestUseCase\`: Lưu danh sách các Validators (\`vector<IValidator*>\`), hàm \`nextPrime(prompt)\` thực hiện kiểm tra tuần tự và trả về \`Expected<int>\`.`,
+    patternOptions: [
+      "Validator Strategy / Chain of Responsibility Interface",
+      "Singleton Pattern",
+      "Iterator Pattern",
+      "Decorator Pattern"
+    ],
+    correctPatternIndex: 0,
+    patternRationale: "Đề bài yêu cầu đóng gói các quy tắc kiểm tra (Format, Range, Prime) thành các lớp độc lập tuân thủ 1 giao diện chung (IValidator) để dễ dàng thêm/bớt validator mà không sửa đổi UseCase -> Validator Strategy / Chain Interface Pattern.",
+    roleMapping: [
+      { role: "Validator Interface", className: "IValidator", description: "Interface chung: `virtual Expected<int> validate(const string& rawInput, int parsedValue) = 0;`" },
+      { role: "Format Validator", className: "ValidIntegerFormatValidator", description: "Kiểm tra chuỗi ký tự hợp lệ, không rỗng, toàn chữ số." },
+      { role: "Range Validator", className: "ValidIntegerValuesValidator", description: "Kiểm tra giá trị nguyên nằm trong đoạn $[min, max]$." },
+      { role: "Prime Validator", className: "IsPrimeValidator", description: "Kiểm tra tính nguyên tố thông qua `Integer::isPrime(n)`." },
+      { role: "Use Case Context", className: "IntegerRequestUseCase", description: "Chứa `vector<IValidator*>` và điều phối quy trình kiểm thử tuần tự." }
+    ],
+    umlDiagram: `                   <<interface>>
+                    IValidator
+     +validate(raw: string, val: int)*: Expected<int>
+                         ▲
+        ┌────────────────┼────────────────┐
+        │                │                │
+ValidIntegerFormat   ValidIntegerValues  IsPrimeValidator
+  -errorMsg: string   -min, max: int      -errorMsg: string
+  
++--------------------------------------------------------+
+|                 IntegerRequestUseCase                  |
++--------------------------------------------------------+
+| - validators: vector<IValidator*>                      |
++--------------------------------------------------------+
+| + addValidator(v: IValidator*): void                   |
+| + nextPrime(prompt: string): Expected<int>             |
++--------------------------------------------------------+`,
+    skeletonCode: `#include <iostream>
+#include <string>
+#include <vector>
+#include <cmath>
+using namespace std;
+
+// 1. Google Style Expected<T>
+template <typename T>
+struct Expected {
+    bool success;
+    string message;
+    T data;
+};
+
+template <typename T>
+Expected<T> succeed(T value) { return Expected<T>{ true, "", value }; }
+
+template <typename T>
+Expected<T> fail(string message) { return Expected<T>{ false, message, T{} }; }
+
+// 2. Class Integer Utility
+class Integer {
+public:
+    static bool isPrime(int number) {
+        if (number <= 1) return false;
+        for (int i = 2; i * i <= number; ++i) {
+            if (number % i == 0) return false;
+        }
+        return true;
+    }
+};
+
+// 3. Validator Interface
+class IValidator {
+public:
+    virtual ~IValidator() {}
+    virtual Expected<int> validate(const string& rawInput, int parsedValue) = 0;
+};
+
+// Validator 1: Format
+class ValidIntegerFormatValidator : public IValidator {
+public:
+    Expected<int> validate(const string& rawInput, int parsedValue) override {
+        if (rawInput.empty()) return fail<int>("Invalid integer format");
+        size_t start = (rawInput[0] == '-' || rawInput[0] == '+') ? 1 : 0;
+        if (start == 1 && rawInput.length() == 1) return fail<int>("Invalid integer format");
+        for (size_t i = start; i < rawInput.length(); ++i) {
+            if (!isdigit(rawInput[i])) return fail<int>("Invalid integer format");
+        }
+        try {
+            return succeed<int>(stoi(rawInput));
+        } catch (...) {
+            return fail<int>("Invalid integer format");
+        }
+    }
+};
+
+// Validator 2: Range [min, max]
+class ValidIntegerValuesValidator : public IValidator {
+private:
+    int minVal, maxVal;
+public:
+    ValidIntegerValuesValidator(int minV, int maxV) : minVal(minV), maxVal(maxV) {}
+    Expected<int> validate(const string& rawInput, int parsedValue) override {
+        if (parsedValue < minVal || parsedValue > maxVal) return fail<int>("Value out of range");
+        return succeed<int>(parsedValue);
+    }
+};
+
+// Validator 3: Prime
+class IsPrimeValidator : public IValidator {
+public:
+    Expected<int> validate(const string& rawInput, int parsedValue) override {
+        if (!Integer::isPrime(parsedValue)) return fail<int>("Not a prime number");
+        return succeed<int>(parsedValue);
+    }
+};
+
+// 4. Use Case Class
+class IntegerRequestUseCase {
+private:
+    vector<IValidator*> validators;
+public:
+    ~IntegerRequestUseCase() {
+        for (IValidator* v : validators) delete v;
+        validators.clear();
+    }
+    void addValidator(IValidator* v) { if (v) validators.push_back(v); }
+
+    Expected<int> nextPrime(string prompt) {
+        cout << prompt;
+        string buffer;
+        if (!getline(cin, buffer)) return fail<int>("Invalid integer format");
+
+        int currentVal = 0;
+        for (IValidator* v : validators) {
+            Expected<int> res = v->validate(buffer, currentVal);
+            if (!res.success) return res;
+            currentVal = res.data;
+        }
+        return succeed<int>(currentVal);
+    }
+};`
+  },
+  {
+    id: "pattern_1",
+    number: 2,
     category: "singleton",
     categoryName: "Mẫu Khởi Tạo: Singleton Pattern",
     difficulty: "medium",
@@ -108,7 +263,7 @@ int main() {
   },
   {
     id: "pattern_2",
-    number: 2,
+    number: 3,
     category: "singleton",
     categoryName: "Mẫu Khởi Tạo: Singleton Pattern",
     difficulty: "medium",
@@ -180,7 +335,7 @@ ConfigManager* ConfigManager::instance = nullptr;`
   },
   {
     id: "pattern_3",
-    number: 3,
+    number: 4,
     category: "singleton",
     categoryName: "Mẫu Khởi Tạo: Singleton Pattern",
     difficulty: "easy",
@@ -245,7 +400,7 @@ AudioEngine* AudioEngine::instance = nullptr;`
   // =========================================================================
   {
     id: "pattern_4",
-    number: 4,
+    number: 5,
     category: "iterator",
     categoryName: "Mẫu Hành Vi: Iterator Pattern",
     difficulty: "hard",
@@ -361,7 +516,7 @@ int main() {
   },
   {
     id: "pattern_5",
-    number: 5,
+    number: 6,
     category: "iterator",
     categoryName: "Mẫu Hành Vi: Iterator Pattern",
     difficulty: "medium",
@@ -442,7 +597,7 @@ string ReverseSongIterator::currentItem() const { return playlist->get(current);
   },
   {
     id: "pattern_6",
-    number: 6,
+    number: 7,
     category: "iterator",
     categoryName: "Mẫu Hành Vi: Iterator Pattern",
     difficulty: "hard",
@@ -494,7 +649,7 @@ public:
   // =========================================================================
   {
     id: "pattern_7",
-    number: 7,
+    number: 8,
     category: "factory",
     categoryName: "Mẫu Khởi Tạo: Factory Method Pattern",
     difficulty: "medium",
@@ -588,7 +743,7 @@ int main() {
   },
   {
     id: "pattern_8",
-    number: 8,
+    number: 9,
     category: "factory",
     categoryName: "Mẫu Khởi Tạo: Factory Method Pattern",
     difficulty: "medium",
@@ -650,7 +805,7 @@ public:
   },
   {
     id: "pattern_9",
-    number: 9,
+    number: 10,
     category: "factory",
     categoryName: "Mẫu Khởi Tạo: Factory Method Pattern",
     difficulty: "medium",
@@ -709,7 +864,7 @@ public:
   // =========================================================================
   {
     id: "pattern_10",
-    number: 10,
+    number: 11,
     category: "other",
     categoryName: "Mẫu Hành Vi: Strategy Pattern",
     difficulty: "hard",

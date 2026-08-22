@@ -466,42 +466,99 @@ int main() {
     id: "trace_11",
     number: 11,
     chapter: "ch5",
-    chapterName: "Chương 5: Kế Thừa & Đa Hình",
-    difficulty: "medium",
-    trapRef: "Bẫy 4 (Quên từ khóa virtual)",
-    tags: ["Virtual Function", "Dynamic Binding", "Polymorphism"],
-    title: "Bài 11: Đa Hình Động (Virtual) vs Liên Kết Tĩnh (Non-virtual)",
+    chapterName: "Chương 5: Kế Thừa, Đa Hình & Bẫy Copy Constructor (Đề Thi Thật 2024-2025)",
+    difficulty: "hard",
+    trapRef: "Bẫy Đề Thi Thật: Copy Constructor Lớp Con Không Gọi Base & Member Initializer List",
+    tags: ["Đề Thi Thật 2024-2025", "Copy Constructor Trap", "Composition", "Virtual Destructor"],
+    title: "Bài 11 (ĐỀ THI THẬT 2024-2025): Bẫy Copy Ctor Rectangle & Thứ Tự Khởi Tạo Shape/Point",
     code: `#include <iostream>
+#include <string>
 using namespace std;
 
-class Animal {
+class Shape {
+protected:
+    string _name;
 public:
-    virtual void speak() { cout << "Animal "; }
-    void sleep() { cout << "Zzz "; }
+    Shape() : _name("") {
+        cout << "Shape default constructor\\n";
+    }
+    Shape(string name) : _name(name) {
+        cout << "Shape parameter constructor\\n";
+    }
+    virtual ~Shape() {
+        cout << "Shape destructor\\n";
+    }
+    virtual double area() = 0;
+    virtual void display() {
+        cout << _name << endl;
+    }
 };
 
-class Dog : public Animal {
+class Point {
+    int _x, _y;
 public:
-    void speak() override { cout << "Woof "; }
-    void sleep() { cout << "DogSleep "; }
+    Point(int x = 0, int y = 0) : _x(x), _y(y) {
+        cout << "Point constructor\\n";
+    }
+    Point(const Point& p) {
+        _x = p._x; _y = p._y;
+        cout << "Point copy constructor\\n";
+    }
+    ~Point() { cout << "Point destructor\\n"; }
+};
+
+class Rectangle : public Shape {
+    Point _topLeft;
+    int _width, _height;
+public:
+    Rectangle(const Point& p, int w, int h)
+        : Shape("Rectangle"), _topLeft(p), _width(w), _height(h) {
+        cout << "Rectangle constructor\\n";
+    }
+    Rectangle(const Rectangle& p) {
+        cout << "Rectangle copy constructor\\n";
+        _name = p._name; _width = p._width;
+        _height = p._height; _topLeft = p._topLeft;
+    }
+    double area() override {
+        return _width * _height;
+    }
+    void display() override {
+        cout << _name << ": " << area() << endl;
+    }
+    ~Rectangle() {
+        cout << "Rectangle destructor\\n";
+    }
 };
 
 int main() {
-    Animal* a = new Dog();
-    a->speak(); // virtual -> dynamic binding
-    a->sleep(); // non-virtual -> static binding
-    delete a;
+    Rectangle rec1(Point(1, 2), 4, 5);
+    Shape* s = new Rectangle(rec1);
+    s->display();
+    delete s;
     return 0;
 }`,
-    expectedOutput: "Woof Zzz",
+    expectedOutput: `Point constructor
+Shape parameter constructor
+Point copy constructor
+Rectangle constructor
+Point destructor
+Shape default constructor
+Point constructor
+Rectangle copy constructor
+Rectangle: 20
+Rectangle destructor
+Point destructor
+Shape destructor`,
     alternativeOutputs: [
-      "Woof Zzz ",
-      "Woof Zzz\n"
+      "Point constructor\nShape parameter constructor\nPoint copy constructor\nRectangle constructor\nPoint destructor\nShape default constructor\nPoint constructor\nRectangle copy constructor\nRectangle: 20\nRectangle destructor\nPoint destructor\nShape destructor\n"
     ],
     stepByStepAnalysis: [
-      { step: 1, line: "Animal* a = new Dog();", explanation: "Con trỏ lớp cha `Animal*` trỏ tới đối tượng thực tế `Dog` trên heap." },
-      { step: 2, line: "a->speak();", explanation: "Vì `speak()` là hàm `virtual` ở `Animal`, C++ dùng Dynamic Binding gọi đúng hàm của đối tượng thực tế `Dog` -> in `Woof `." },
-      { step: 3, line: "a->sleep();", explanation: "⚠️ BẪY: Vì `sleep()` KHÔNG PHẢI virtual, compiler dùng Static Binding dựa theo kiểu con trỏ `Animal*` -> in `Zzz ` (chứ không in `DogSleep`)." }
+      { step: 1, line: "Point(1, 2) tạm thời", explanation: "Tạo đối tượng tạm `Point(1, 2)` làm đối số cho rec1 -> in: `Point constructor`." },
+      { step: 2, line: "Rectangle rec1(Point(1, 2), 4, 5);", explanation: "Lớp cha `Shape(\"Rectangle\")` chạy -> in: `Shape parameter constructor`. Thành viên `_topLeft(p)` gọi Copy Constructor của Point -> in: `Point copy constructor`. Thân constructor Rectangle chạy -> in: `Rectangle constructor`. Cuối cùng đối tượng tạm `Point(1, 2)` bị hủy -> in: `Point destructor`." },
+      { step: 3, line: "new Rectangle(rec1) - BẪY CỰC HIỂM CỦA ĐỀ THI", explanation: "⚠️ BẪY ĐỈNH CAO: Trong `Rectangle(const Rectangle& p)`, lập trình viên KHÔNG GỌI `Shape(p)` và KHÔNG GỌI `_topLeft(p._topLeft)` trong Member Initializer List! Do đó, C++ tự động gọi **Default Constructor** của lớp cha `Shape()` -> in: `Shape default constructor`, và Default Constructor của thành viên `Point()` -> in: `Point constructor`. Sau đó thân hàm Copy Constructor của Rectangle mới chạy -> in: `Rectangle copy constructor` (sau đó mới gán giá trị ở thân hàm)." },
+      { step: 4, line: "s->display();", explanation: "Lời gọi đa hình qua con trỏ `Shape*` gọi `Rectangle::display()` -> in: `Rectangle: 20`." },
+      { step: 5, line: "delete s;", explanation: "Vì `~Shape()` là virtual destructor -> gọi `~Rectangle()` in: `Rectangle destructor`, hủy thành viên `_topLeft` in: `Point destructor`, cuối cùng gọi `~Shape()` in: `Shape destructor`." }
     ]
   },
   {
