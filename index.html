@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>OOP C++ Exam Master · Luyện Thi Cuối Kỳ 4 Dạng Chuẩn FIT-HCMUS & 50 MCQs Tiếng Anh</title>
+  <title>OOP C++ Exam Master · Trọn Bộ 4 Phân Hệ Luyện Thi Cuối Kỳ Chuẩn FIT-HCMUS</title>
 
   <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -27,17 +27,23 @@
           <div class="brand-icon">C++</div>
           <div class="brand-text">
             <h1>OOP EXAM MASTER <span class="badge-hcmus">FIT-HCMUS</span></h1>
-            <p>Trắc Nghiệm 50 Câu Tiếng Anh · Tự Luận 4 Dạng Chuẩn · Slide Tuần 2 → 8</p>
+            <p>50 MCQs · 35 Bài Đọc Code · 15 Bài Viết Code · 10 Bài Thiết Kế · Slide Tuần 2 → 8</p>
           </div>
         </a>
 
-        <!-- MAIN SECTION NAV PILLS -->
+        <!-- MAIN SECTION 4 TABS SWITCHER -->
         <div class="main-nav-switcher">
           <button class="main-nav-btn active" id="btnNavMCQ">
-            <span>📝</span> <span>Trắc Nghiệm (50 MCQs)</span>
+            <span>📝</span> <span>Trắc Nghiệm (50)</span>
           </button>
-          <button class="main-nav-btn" id="btnNavWritten">
-            <span>✍️</span> <span>Tự Luận & 4 Dạng Bài</span>
+          <button class="main-nav-btn" id="btnNavTrace">
+            <span>🔍</span> <span>Dạng 2: Đọc Code (35)</span>
+          </button>
+          <button class="main-nav-btn" id="btnNavWriting">
+            <span>💻</span> <span>Dạng 3: Viết Code (15)</span>
+          </button>
+          <button class="main-nav-btn" id="btnNavPattern">
+            <span>🏛️</span> <span>Dạng 4: Thiết Kế (10)</span>
           </button>
         </div>
 
@@ -65,11 +71,11 @@
     </div>
   </header>
 
+
   <!-- =========================================================================
-       SECTION 1: TRẮC NGHIỆM TIẾNG ANH (50 MCQs)
+       PHÂN HỆ 1: TRẮC NGHIỆM TIẾNG ANH (50 MCQs)
        ========================================================================= -->
   <div id="mcqSection" class="section-view active">
-    
     <!-- SUB-NAV / MCQ CONTROLS -->
     <section class="exam-control-bar">
       <div class="container">
@@ -104,11 +110,10 @@
 
     <!-- MAIN BODY MCQ -->
     <main class="container" style="flex:1; margin-top:20px; margin-bottom:40px;">
-      
       <!-- MCQ HERO INFO -->
       <section class="exam-hero">
         <div class="exam-hero-title">
-          <h2>50 ENGLISH MULTIPLE CHOICE QUESTIONS (MCQs)</h2>
+          <h2>📝 50 ENGLISH MULTIPLE CHOICE QUESTIONS (MCQs)</h2>
           <p>Bao quát toàn diện OOP C++ chuẩn quốc tế · Trọng tâm từ Chương 5 trở đi (Kế thừa, Đa hình, File I/O, Template, Exception, STL, Design Patterns) & Bổ trợ Chương 2-4.</p>
         </div>
         <div class="exam-hero-meta">
@@ -136,7 +141,6 @@
           <button class="diff-btn" data-diff="medium">🟡 Medium (Trung bình)</button>
           <button class="diff-btn" data-diff="hard">🔴 Hard / Trap (Nâng cao)</button>
         </div>
-        
         <div class="mcq-search-box">
           <input type="text" id="mcqSearchInput" placeholder="🔍 Tìm kiếm câu hỏi (vd: vtable, rule of three, dynamic_cast...)" />
         </div>
@@ -144,12 +148,10 @@
 
       <!-- DUAL COLUMN LAYOUT: CARDS + NAVIGATOR -->
       <div class="mcq-layout-grid">
-        <!-- Main Questions Stream -->
         <div class="mcq-cards-stream" id="mcqCardsContainer">
           <!-- MCQ cards rendered here -->
         </div>
 
-        <!-- Sticky Sidebar: Navigator Grid 1..50 -->
         <aside class="mcq-sidebar">
           <div class="sidebar-card">
             <div class="sidebar-card-header">
@@ -167,7 +169,6 @@
             </div>
           </div>
 
-          <!-- Quick Jump Chapters Box -->
           <div class="sidebar-card" style="margin-top:16px;">
             <div class="sidebar-card-header">
               <h4>📚 Phân Bố Chương</h4>
@@ -190,105 +191,368 @@
                 <strong>10 câu</strong>
               </div>
               <div class="ch-stat-row" onclick="window.filterMCQChapter('ch2_4')">
-                <span>Ch 2-4: Core OOP, Memory & Static</span>
+                <span>Ch 2-4: Core OOP & Memory</span>
                 <strong>10 câu</strong>
               </div>
             </div>
           </div>
         </aside>
       </div>
-
     </main>
   </div>
 
 
   <!-- =========================================================================
-       SECTION 2: TỰ LUẬN & 4 DẠNG BÀI (FIT-HCMUS)
+       PHÂN HỆ 2: DẠNG 2 - ĐỌC CODE ĐOÁN OUTPUT & BẪY CODE (35 BÀI)
        ========================================================================= -->
-  <div id="writtenSection" class="section-view" style="display:none;">
-    
-    <!-- SUB-NAV / CONTROLS -->
+  <div id="codeTraceSection" class="section-view" style="display:none;">
+    <!-- SUB-NAV / TRACE CONTROLS -->
     <section class="exam-control-bar">
       <div class="container">
         <div class="control-bar-content">
-          <!-- View Mode Switch: By Exam vs By 4-Types Bank -->
-          <div class="view-mode-pill">
-            <button class="view-mode-btn active" id="writtenModeExamBtn">📄 Theo Bộ Đề Chuẩn (Đề 1 → 5)</button>
-            <button class="view-mode-btn" id="writtenModeBankBtn">📚 Theo Kho 4 Dạng Bài (Dạng 1 → 4)</button>
+          <div class="filter-chips-scroll" id="traceChapterFilters">
+            <button class="filter-chip active" data-trace-chapter="all">Tất cả 35 Bài</button>
+            <button class="filter-chip" data-trace-chapter="ch2_4">Ch 2-4: Vòng Đời & Bộ Nhớ (10)</button>
+            <button class="filter-chip" data-trace-chapter="ch5">Ch 5: Kế Thừa & Đa Hình (10)</button>
+            <button class="filter-chip" data-trace-chapter="ch6">Ch 6: Quan Hệ & File I/O (5)</button>
+            <button class="filter-chip" data-trace-chapter="ch7">Ch 7: Template & Ngoại Lệ (5)</button>
+            <button class="filter-chip" data-trace-chapter="ch8">Ch 8: STL & Design Patterns (5)</button>
           </div>
 
-          <!-- Exam Selection Tabs (Visible in Exam mode) -->
-          <div class="exam-tabs" id="examTabs">
-            <!-- Dynamically populated from JS -->
-          </div>
-
-          <!-- Bank Category Pills (Visible in Bank mode) -->
-          <div class="bank-type-pills" id="bankTypePills" style="display:none;">
-            <button class="bank-pill-btn active" data-bank-type="theory">📖 Dạng 1: Lý Thuyết</button>
-            <button class="bank-pill-btn" data-bank-type="code_trace">🔍 Dạng 2: Đọc Code Đoán Output</button>
-            <button class="bank-pill-btn" data-bank-type="code_writing">💻 Dạng 3: Viết Code</button>
-            <button class="bank-pill-btn" data-bank-type="design_pattern">🏛️ Dạng 4: Thiết Kế Kiến Trúc</button>
-          </div>
-
-          <!-- Mode Toggles & Submit Action -->
           <div class="mode-toggles">
-            <div class="mode-pill"
-              title="Chế độ học tập: Xem giải thích & đáp án ngay / Chế độ thi: Bấm giờ và nộp bài tính điểm">
-              <button class="mode-pill-btn active" id="modePracticeBtn">⚡ Luyện Tập</button>
-              <button class="mode-pill-btn" id="modeExamBtn">📝 Thi Thử (90p)</button>
+            <div class="mode-pill" title="Chế độ học tập: So khớp Diff ngay / Chế độ thi: Làm xong nộp bài tính điểm">
+              <button class="mode-pill-btn active" id="traceModePracticeBtn">⚡ Luyện Tập</button>
+              <button class="mode-pill-btn" id="traceModeExamBtn">📝 Thi Thử</button>
             </div>
 
-            <button id="submitExamBtn" class="btn btn-success btn-sm">
+            <button id="traceSubmitBtn" class="btn btn-success btn-sm">
               🏆 Nộp Bài & Chấm Điểm
+            </button>
+            <button id="traceResetBtn" class="btn btn-outline btn-sm" title="Làm lại toàn bộ 35 bài">
+              🔄 Làm Lại
             </button>
           </div>
         </div>
       </div>
     </section>
 
-    <!-- MAIN BODY WRITTEN -->
+    <!-- MAIN BODY CODE TRACE -->
     <main class="container" style="flex:1; margin-top:20px; margin-bottom:40px;">
-
-      <!-- EXAM HERO INFO -->
       <section class="exam-hero">
         <div class="exam-hero-title">
-          <h2 id="examTitle">Đang tải đề thi...</h2>
-          <p id="examSubtitle">Cấu trúc chuẩn: C1 Lý thuyết (2đ) · C2 Đoán output (2đ) · C3 Viết code (3đ) · C4 Thiết kế
-            kiến trúc (3đ)</p>
+          <h2>🔍 DẠNG 2: ĐỌC CODE ĐOÁN OUTPUT & TRUY VẾT BẪY (35 BÀI)</h2>
+          <p>Luyện tập kỹ năng truy vết mã nguồn C++, phát hiện bẫy constructor, virtual destructor, object slicing, stack unwinding và STL.</p>
         </div>
         <div class="exam-hero-meta">
           <div class="meta-stat">
-            <div class="stat-val" id="examTimeBadge">90 Phút</div>
-            <div class="stat-label">Thời gian làm bài</div>
+            <div class="stat-val" id="traceAnsweredBadge" style="color:var(--cyan);">0 / 35</div>
+            <div class="stat-label">Đã hoàn thành</div>
           </div>
           <div class="meta-stat">
-            <div class="stat-val" id="totalQuestionsBadge" style="color:var(--success);">4 Câu</div>
-            <div class="stat-label">Tổng số câu hỏi</div>
+            <div class="stat-val" id="traceScoreBadge" style="color:var(--success);">0%</div>
+            <div class="stat-label">Độ chính xác</div>
           </div>
           <div class="meta-stat">
-            <div class="stat-val" style="color:var(--warning);">10.0đ</div>
-            <div class="stat-label">Thang điểm chuẩn</div>
+            <div class="stat-val" style="color:var(--warning);">35 Bài</div>
+            <div class="stat-label">Tổng bài tập</div>
           </div>
         </div>
       </section>
 
-      <!-- 4 QUESTION TYPES FILTER (In Exam View) -->
-      <div class="type-filter-bar" id="examTypeFilterBar">
-        <span style="font-size:13px; font-weight:600; color:var(--text-muted); margin-right:4px;">Phân loại dạng:</span>
-        <button class="filter-btn active" data-filter="all">Tất cả 4 Dạng (Trọn bộ đề)</button>
-        <button class="filter-btn" data-filter="theory">📖 Câu 1: Lý Thuyết</button>
-        <button class="filter-btn" data-filter="code_trace">🔍 Câu 2: Đọc Code → Output</button>
-        <button class="filter-btn" data-filter="code_writing">💻 Câu 3: Viết Code</button>
-        <button class="filter-btn" data-filter="design_pattern">🏛️ Câu 4: Thiết Kế Kiến Trúc</button>
+      <div class="mcq-toolbar-secondary">
+        <div class="difficulty-filter-group">
+          <span style="font-size:13px; font-weight:600; color:var(--text-muted);">Độ khó:</span>
+          <button class="diff-btn active" data-trace-diff="all">Tất cả</button>
+          <button class="diff-btn" data-trace-diff="easy">🟢 Easy (Cơ bản)</button>
+          <button class="diff-btn" data-trace-diff="medium">🟡 Medium (Trung bình)</button>
+          <button class="diff-btn" data-trace-diff="hard">🔴 Hard / Bẫy (Nâng cao)</button>
+        </div>
+        <div class="mcq-search-box">
+          <input type="text" id="traceSearchInput" placeholder="🔍 Tìm kiếm bài tập (vd: virtual destructor, slicing, static...)" />
+        </div>
       </div>
 
-      <!-- QUESTIONS CONTAINER (EXAM & BANK) -->
-      <section id="questionsContainer">
-        <!-- Question cards will be rendered dynamically -->
-      </section>
+      <div class="mcq-layout-grid">
+        <div class="mcq-cards-stream" id="traceCardsContainer">
+          <!-- Code trace cards rendered here -->
+        </div>
 
+        <aside class="mcq-sidebar">
+          <div class="sidebar-card">
+            <div class="sidebar-card-header">
+              <h4>🎯 Question Navigator</h4>
+              <span id="traceSidebarProgressText" style="font-size:12px; color:var(--text-muted);">0/35</span>
+            </div>
+            <div class="navigator-legend">
+              <span class="legend-item"><span class="dot dot-unanswered"></span> Chưa làm</span>
+              <span class="legend-item"><span class="dot dot-answered"></span> Đã nhập</span>
+              <span class="legend-item"><span class="dot dot-correct"></span> Khớp 100%</span>
+              <span class="legend-item"><span class="dot dot-wrong"></span> Chưa khớp</span>
+            </div>
+            <div class="question-grid-container" id="traceGridNavigator">
+              <!-- 35 trace buttons rendered here -->
+            </div>
+          </div>
+
+          <div class="sidebar-card" style="margin-top:16px;">
+            <div class="sidebar-card-header">
+              <h4>📚 Phân Bố Theo Chương</h4>
+            </div>
+            <div class="chapter-stat-list">
+              <div class="ch-stat-row" onclick="window.filterTraceChapter('ch2_4')">
+                <span>Ch 2-4: Vòng Đời & Bộ Nhớ</span>
+                <strong>10 bài</strong>
+              </div>
+              <div class="ch-stat-row" onclick="window.filterTraceChapter('ch5')">
+                <span>Ch 5: Kế Thừa & Đa Hình</span>
+                <strong>10 bài</strong>
+              </div>
+              <div class="ch-stat-row" onclick="window.filterTraceChapter('ch6')">
+                <span>Ch 6: Quan Hệ & File I/O</span>
+                <strong>5 bài</strong>
+              </div>
+              <div class="ch-stat-row" onclick="window.filterTraceChapter('ch7')">
+                <span>Ch 7: Template & Ngoại Lệ</span>
+                <strong>5 bài</strong>
+              </div>
+              <div class="ch-stat-row" onclick="window.filterTraceChapter('ch8')">
+                <span>Ch 8: STL & Design Patterns</span>
+                <strong>5 bài</strong>
+              </div>
+            </div>
+          </div>
+        </aside>
+      </div>
     </main>
   </div>
+
+
+  <!-- =========================================================================
+       PHÂN HỆ 3: DẠNG 3 - VIẾT CODE C++ HOÀN CHỈNH (15 BÀI - 3.0 ĐIỂM)
+       ========================================================================= -->
+  <div id="codeWritingSection" class="section-view" style="display:none;">
+    <!-- SUB-NAV / WRITING CONTROLS -->
+    <section class="exam-control-bar">
+      <div class="container">
+        <div class="control-bar-content">
+          <div class="filter-chips-scroll" id="writingChapterFilters">
+            <button class="filter-chip active" data-writing-chapter="all">Tất cả 15 Bài</button>
+            <button class="filter-chip" data-writing-chapter="ch2_4">Ch 2-4: Rule of Three & Class (4)</button>
+            <button class="filter-chip" data-writing-chapter="ch5">Ch 5: Kế Thừa & Đa Hình (4)</button>
+            <button class="filter-chip" data-writing-chapter="ch6">Ch 6: File I/O & Composition (2)</button>
+            <button class="filter-chip" data-writing-chapter="ch7">Ch 7: Template & Exception (4)</button>
+            <button class="filter-chip" data-writing-chapter="ch8">Ch 8: STL & Map Tracker (1)</button>
+          </div>
+
+          <div class="mode-toggles">
+            <button id="writingResetBtn" class="btn btn-outline btn-sm" title="Khôi phục toàn bộ code mẫu ban đầu">
+              🔄 Khôi Phục Toàn Bộ
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- MAIN BODY WRITING -->
+    <main class="container" style="flex:1; margin-top:20px; margin-bottom:40px;">
+      <section class="exam-hero">
+        <div class="exam-hero-title">
+          <h2>💻 DẠNG 3: VIẾT CODE C++ (IMPLEMENTATION - 3.0 ĐIỂM)</h2>
+          <p>Rèn luyện kỹ năng cài đặt class, template, nạp chồng toán tử, quản lý bộ nhớ Rule of Three, kế thừa đa hình và xử lý ngoại lệ chuẩn barem thi.</p>
+        </div>
+        <div class="exam-hero-meta">
+          <div class="meta-stat">
+            <div class="stat-val" id="writingCompletedBadge" style="color:var(--cyan);">0 / 15</div>
+            <div class="stat-label">Đã viết code</div>
+          </div>
+          <div class="meta-stat">
+            <div class="stat-val" id="writingScoreBadge" style="color:var(--success);">0.0 / 3.0đ</div>
+            <div class="stat-label">Điểm checklist TB</div>
+          </div>
+          <div class="meta-stat">
+            <div class="stat-val" style="color:var(--warning);">15 Bài</div>
+            <div class="stat-label">Tổng bài tập</div>
+          </div>
+        </div>
+      </section>
+
+      <div class="mcq-toolbar-secondary">
+        <div class="difficulty-filter-group">
+          <span style="font-size:13px; font-weight:600; color:var(--text-muted);">Độ khó:</span>
+          <button class="diff-btn active" data-writing-diff="all">Tất cả</button>
+          <button class="diff-btn" data-writing-diff="easy">🟢 Easy (Cơ bản)</button>
+          <button class="diff-btn" data-writing-diff="medium">🟡 Medium (Trung bình)</button>
+          <button class="diff-btn" data-writing-diff="hard">🔴 Hard (Nâng cao)</button>
+        </div>
+        <div class="mcq-search-box">
+          <input type="text" id="writingSearchInput" placeholder="🔍 Tìm kiếm bài tập (vd: MyString, SafeStack, Matrix, NhanVien...)" />
+        </div>
+      </div>
+
+      <div class="mcq-layout-grid">
+        <div class="mcq-cards-stream" id="writingCardsContainer">
+          <!-- Code writing cards rendered here -->
+        </div>
+
+        <aside class="mcq-sidebar">
+          <div class="sidebar-card">
+            <div class="sidebar-card-header">
+              <h4>🎯 Question Navigator</h4>
+              <span id="writingSidebarProgressText" style="font-size:12px; color:var(--text-muted);">0/15</span>
+            </div>
+            <div class="navigator-legend">
+              <span class="legend-item"><span class="dot dot-unanswered"></span> Chưa làm</span>
+              <span class="legend-item"><span class="dot dot-answered"></span> Đang viết code</span>
+              <span class="legend-item"><span class="dot dot-correct"></span> Đã đạt checklist</span>
+            </div>
+            <div class="question-grid-container" id="writingGridNavigator" style="grid-template-columns: repeat(5, 1fr);">
+              <!-- 15 writing buttons rendered here -->
+            </div>
+          </div>
+
+          <div class="sidebar-card" style="margin-top:16px;">
+            <div class="sidebar-card-header">
+              <h4>📚 Chủ Đề Trọng Tâm</h4>
+            </div>
+            <div class="chapter-stat-list">
+              <div class="ch-stat-row" onclick="window.filterWritingChapter('ch2_4')">
+                <span>Ch 2-4: MyString & Rule of Three</span>
+                <strong>4 bài</strong>
+              </div>
+              <div class="ch-stat-row" onclick="window.filterWritingChapter('ch5')">
+                <span>Ch 5: Cây Kế Thừa & Đa Hình</span>
+                <strong>4 bài</strong>
+              </div>
+              <div class="ch-stat-row" onclick="window.filterWritingChapter('ch6')">
+                <span>Ch 6: File Nhị Phân & Composition</span>
+                <strong>2 bài</strong>
+              </div>
+              <div class="ch-stat-row" onclick="window.filterWritingChapter('ch7')">
+                <span>Ch 7: SafeStack & Template Matrix</span>
+                <strong>4 bài</strong>
+              </div>
+              <div class="ch-stat-row" onclick="window.filterWritingChapter('ch8')">
+                <span>Ch 8: WordFrequencyTracker (STL)</span>
+                <strong>1 bài</strong>
+              </div>
+            </div>
+          </div>
+        </aside>
+      </div>
+    </main>
+  </div>
+
+
+  <!-- =========================================================================
+       PHÂN HỆ 4: DẠNG 4 - THIẾT KẾ KIẾN TRÚC & DESIGN PATTERNS (10 BÀI - 3.0 ĐIỂM)
+       ========================================================================= -->
+  <div id="designPatternSection" class="section-view" style="display:none;">
+    <!-- SUB-NAV / PATTERN CONTROLS -->
+    <section class="exam-control-bar">
+      <div class="container">
+        <div class="control-bar-content">
+          <div class="filter-chips-scroll" id="patternCategoryFilters">
+            <button class="filter-chip active" data-pattern-cat="all">Tất cả 10 Tình Huống</button>
+            <button class="filter-chip" data-pattern-cat="singleton">Singleton Pattern (3)</button>
+            <button class="filter-chip" data-pattern-cat="iterator">Iterator Pattern (3)</button>
+            <button class="filter-chip" data-pattern-cat="factory">Factory Method (3)</button>
+            <button class="filter-chip" data-pattern-cat="other">Strategy Pattern (1)</button>
+          </div>
+
+          <div class="mode-toggles">
+            <button id="patternResetBtn" class="btn btn-outline btn-sm" title="Làm lại toàn bộ 10 bài">
+              🔄 Làm Lại
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- MAIN BODY DESIGN PATTERN -->
+    <main class="container" style="flex:1; margin-top:20px; margin-bottom:40px;">
+      <section class="exam-hero">
+        <div class="exam-hero-title">
+          <h2>🏛️ DẠNG 4: THIẾT KẾ KIẾN TRÚC & DESIGN PATTERNS (3.0 ĐIỂM)</h2>
+          <p>Phân tích tình huống thực tế, lựa chọn Design Pattern tối ưu, vẽ sơ đồ lớp UML và xây dựng bộ khung kiến trúc C++ Skeleton chuẩn chỉ.</p>
+        </div>
+        <div class="exam-hero-meta">
+          <div class="meta-stat">
+            <div class="stat-val" id="patternCompletedBadge" style="color:var(--cyan);">0 / 10</div>
+            <div class="stat-label">Đã hoàn thành</div>
+          </div>
+          <div class="meta-stat">
+            <div class="stat-val" id="patternScoreBadge" style="color:var(--success);">0%</div>
+            <div class="stat-label">Độ chính xác</div>
+          </div>
+          <div class="meta-stat">
+            <div class="stat-val" style="color:var(--warning);">10 Bài</div>
+            <div class="stat-label">Tổng tình huống</div>
+          </div>
+        </div>
+      </section>
+
+      <div class="mcq-toolbar-secondary">
+        <div class="difficulty-filter-group">
+          <span style="font-size:13px; font-weight:600; color:var(--text-muted);">Độ khó:</span>
+          <button class="diff-btn active" data-pattern-diff="all">Tất cả</button>
+          <button class="diff-btn" data-pattern-diff="easy">🟢 Easy (Cơ bản)</button>
+          <button class="diff-btn" data-pattern-diff="medium">🟡 Medium (Trung bình)</button>
+          <button class="diff-btn" data-pattern-diff="hard">🔴 Hard (Nâng cao)</button>
+        </div>
+        <div class="mcq-search-box">
+          <input type="text" id="patternSearchInput" placeholder="🔍 Tìm kiếm bài tập (vd: Logger, Playlist, Notification, Strategy...)" />
+        </div>
+      </div>
+
+      <div class="mcq-layout-grid">
+        <div class="mcq-cards-stream" id="patternCardsContainer">
+          <!-- Design pattern cards rendered here -->
+        </div>
+
+        <aside class="mcq-sidebar">
+          <div class="sidebar-card">
+            <div class="sidebar-card-header">
+              <h4>🎯 Question Navigator</h4>
+              <span id="patternSidebarProgressText" style="font-size:12px; color:var(--text-muted);">0/10</span>
+            </div>
+            <div class="navigator-legend">
+              <span class="legend-item"><span class="dot dot-unanswered"></span> Chưa làm</span>
+              <span class="legend-item"><span class="dot dot-correct"></span> Chọn đúng Pattern</span>
+              <span class="legend-item"><span class="dot dot-wrong"></span> Chọn sai</span>
+            </div>
+            <div class="question-grid-container" id="patternGridNavigator" style="grid-template-columns: repeat(5, 1fr);">
+              <!-- 10 pattern buttons rendered here -->
+            </div>
+          </div>
+
+          <div class="sidebar-card" style="margin-top:16px;">
+            <div class="sidebar-card-header">
+              <h4>📚 Các Mẫu Thiết Kế</h4>
+            </div>
+            <div class="chapter-stat-list">
+              <div class="ch-stat-row" onclick="window.filterPatternCategory('singleton')">
+                <span>Singleton Pattern (Logger, Config)</span>
+                <strong>3 bài</strong>
+              </div>
+              <div class="ch-stat-row" onclick="window.filterPatternCategory('iterator')">
+                <span>Iterator Pattern (Product, Playlist)</span>
+                <strong>3 bài</strong>
+              </div>
+              <div class="ch-stat-row" onclick="window.filterPatternCategory('factory')">
+                <span>Factory Method (Notification, Doc)</span>
+                <strong>3 bài</strong>
+              </div>
+              <div class="ch-stat-row" onclick="window.filterPatternCategory('other')">
+                <span>Strategy Pattern (Payment)</span>
+                <strong>1 bài</strong>
+              </div>
+            </div>
+          </div>
+        </aside>
+      </div>
+    </main>
+  </div>
+
 
   <!-- MODAL: SỔ TAY 10 BẪY CODE KINH ĐIỂN -->
   <div class="modal-overlay" id="trapModal">
@@ -312,7 +576,7 @@
   <div class="modal-overlay" id="summaryModal">
     <div class="modal-container" style="max-width:640px;">
       <div class="modal-header">
-        <h3>📊 Bảng Điểm & Đánh Giá Kết Quả Bài Thi</h3>
+        <h3>📊 Bảng Điểm & Đánh Giá Kết Quả Bài Làm</h3>
         <button id="closeSummaryBtn" class="btn btn-outline btn-sm">✕</button>
       </div>
       <div class="modal-body" id="summaryContent">
@@ -325,14 +589,16 @@
   <footer class="main-footer">
     <div class="container">
       <p>OOP C++ Final Exam Master · Khoa CNTT - Đại học Khoa Học Tự Nhiên ĐHQG-HCM (FIT-HCMUS)</p>
-      <p style="margin-top:4px; font-size:12px; color:var(--text-muted);">Hệ thống bám sát giáo trình Slide Tuần 2 → 8 · 50 MCQs Tiếng Anh & 4 Dạng Bài Tự Luận Chuẩn.</p>
+      <p style="margin-top:4px; font-size:12px; color:var(--text-muted);">Trọn bộ 4 phân hệ: 50 MCQs Tiếng Anh · 35 Bài Đọc Code Đoán Output · 15 Bài Viết Code · 10 Bài Thiết Kế Kiến Trúc.</p>
     </div>
   </footer>
 
   <!-- DATASETS -->
   <script src="data/trap_cheatsheet.js"></script>
   <script src="data/mcq_english_50.js"></script>
-  <script src="data/question_bank_4types.js"></script>
+  <script src="data/code_trace_bank.js"></script>
+  <script src="data/code_writing_bank.js"></script>
+  <script src="data/design_pattern_bank.js"></script>
   <script src="data/de1.js"></script>
   <script src="data/de2.js"></script>
   <script src="data/de3.js"></script>

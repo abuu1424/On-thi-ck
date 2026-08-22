@@ -1,12 +1,11 @@
 /**
- * OOP C++ EXAM MASTER - JAVASCRIPT APPLICATION CORE
- * Features:
- *  1. 50 English MCQs Engine (Focus on Ch 5+, Ch 2-4 supporting) with instant/exam mode, chapter/difficulty filters, question navigator.
- *  2. Written Exam & 4 Standard Types Engine (Full Mock Exams 1->5 & Sequential 4-Types Question Bank).
- *  3. Interactive Code Tracing with Diff Check & Step-by-step Trace.
- *  4. In-browser Code Editor with Tab key support & Self-grading Checklist.
- *  5. Design Pattern Architectural Validator with UML Diagrams & C++ Skeletons.
- *  6. 10 Classic Trap Cheatsheet & 90-minute Countdown Timer.
+ * OOP C++ EXAM MASTER - APPLICATION CORE
+ * Quản lý toàn diện 4 Phân Hệ Luyện Thi Cuối Kỳ Chuẩn FIT-HCMUS:
+ *  1. 📝 Trắc Nghiệm Tiếng Anh (50 MCQs)
+ *  2. 🔍 Dạng 2: Đọc Code Đoán Output & Bẫy Code (35 Bài - 2.0đ)
+ *  3. 💻 Dạng 3: Viết Code C++ & Checklist Barem (15 Bài - 3.0đ)
+ *  4. 🏛️ Dạng 4: Thiết Kế Kiến Trúc & Design Patterns (10 Bài - 3.0đ)
+ *  5. ⚡ Sổ Tay 10 Bẫy Code & Đồng Hồ Bấm Giờ 90 Phút
  */
 
 (function () {
@@ -16,7 +15,7 @@
   // STATE MANAGEMENT
   // =========================================================================
   const state = {
-    activeMainSection: "mcq", // 'mcq' | 'written'
+    activeMainSection: localStorage.getItem("oop_active_section") || "mcq", // 'mcq' | 'trace' | 'writing' | 'pattern'
     theme: localStorage.getItem("oop_theme") || "dark",
     timer: {
       totalSeconds: 90 * 60,
@@ -24,24 +23,43 @@
       intervalId: null,
       isRunning: false
     },
-    // MCQ State
+    // 1. MCQ State
     mcq: {
       activeChapter: "all",
       activeDifficulty: "all",
       searchQuery: "",
       mode: "practice", // 'practice' | 'exam'
       userAnswers: JSON.parse(localStorage.getItem("oop_mcq_answers") || "{}"),
+      lastQuestionId: localStorage.getItem("oop_last_mcq_qid") || null,
       checkedQuestions: {},
       isSubmitted: false
     },
-    // Written State
-    written: {
-      viewMode: "exam", // 'exam' | 'bank'
-      currentExamId: "de1",
-      activeExamFilter: "all", // 'all' | 'theory' | 'code_trace' | 'code_writing' | 'design_pattern'
-      activeBankType: "theory", // 'theory' | 'code_trace' | 'code_writing' | 'design_pattern'
+    // 2. Code Trace State (Dạng 2)
+    trace: {
+      activeChapter: "all",
+      activeDifficulty: "all",
+      searchQuery: "",
       mode: "practice", // 'practice' | 'exam'
-      userAnswers: JSON.parse(localStorage.getItem("oop_written_answers") || "{}")
+      userAnswers: JSON.parse(localStorage.getItem("oop_trace_answers") || "{}"), // { qId: { userOutput: string, isChecked: boolean, isCorrect: boolean } }
+      lastQuestionId: localStorage.getItem("oop_last_trace_qid") || null,
+      isSubmitted: false
+    },
+    // 3. Code Writing State (Dạng 3)
+    writing: {
+      activeChapter: "all",
+      activeDifficulty: "all",
+      searchQuery: "",
+      userCode: JSON.parse(localStorage.getItem("oop_writing_codes") || "{}"), // { qId: string }
+      checklistState: JSON.parse(localStorage.getItem("oop_writing_checklists") || "{}"), // { qId: { c1: true, c2: false } }
+      lastQuestionId: localStorage.getItem("oop_last_writing_qid") || null
+    },
+    // 4. Design Pattern State (Dạng 4)
+    pattern: {
+      activeCategory: "all",
+      activeDifficulty: "all",
+      searchQuery: "",
+      userChoices: JSON.parse(localStorage.getItem("oop_pattern_choices") || "{}"), // { qId: { chosenIdx: number, isEvaluated: boolean } }
+      lastQuestionId: localStorage.getItem("oop_last_pattern_qid") || null
     }
   };
 
@@ -49,11 +67,17 @@
   // DOM ELEMENTS
   // =========================================================================
   const el = {
-    // Nav Switcher
+    // 4 Nav Switcher Buttons
     btnNavMCQ: document.getElementById("btnNavMCQ"),
-    btnNavWritten: document.getElementById("btnNavWritten"),
+    btnNavTrace: document.getElementById("btnNavTrace"),
+    btnNavWriting: document.getElementById("btnNavWriting"),
+    btnNavPattern: document.getElementById("btnNavPattern"),
+
+    // 4 Section Containers
     mcqSection: document.getElementById("mcqSection"),
-    writtenSection: document.getElementById("writtenSection"),
+    codeTraceSection: document.getElementById("codeTraceSection"),
+    codeWritingSection: document.getElementById("codeWritingSection"),
+    designPatternSection: document.getElementById("designPatternSection"),
 
     // Timer & Theme
     timerDisplay: document.getElementById("timerDisplay"),
@@ -86,20 +110,38 @@
     mcqGridNavigator: document.getElementById("mcqGridNavigator"),
     sidebarProgressText: document.getElementById("sidebarProgressText"),
 
-    // Written Elements
-    writtenModeExamBtn: document.getElementById("writtenModeExamBtn"),
-    writtenModeBankBtn: document.getElementById("writtenModeBankBtn"),
-    examTabs: document.getElementById("examTabs"),
-    bankTypePills: document.getElementById("bankTypePills"),
-    modePracticeBtn: document.getElementById("modePracticeBtn"),
-    modeExamBtn: document.getElementById("modeExamBtn"),
-    submitExamBtn: document.getElementById("submitExamBtn"),
-    examTitle: document.getElementById("examTitle"),
-    examSubtitle: document.getElementById("examSubtitle"),
-    examTimeBadge: document.getElementById("examTimeBadge"),
-    totalQuestionsBadge: document.getElementById("totalQuestionsBadge"),
-    examTypeFilterBar: document.getElementById("examTypeFilterBar"),
-    questionsContainer: document.getElementById("questionsContainer")
+    // Code Trace Elements
+    traceChapterFilters: document.getElementById("traceChapterFilters"),
+    traceModePracticeBtn: document.getElementById("traceModePracticeBtn"),
+    traceModeExamBtn: document.getElementById("traceModeExamBtn"),
+    traceSubmitBtn: document.getElementById("traceSubmitBtn"),
+    traceResetBtn: document.getElementById("traceResetBtn"),
+    traceAnsweredBadge: document.getElementById("traceAnsweredBadge"),
+    traceScoreBadge: document.getElementById("traceScoreBadge"),
+    traceSearchInput: document.getElementById("traceSearchInput"),
+    traceCardsContainer: document.getElementById("traceCardsContainer"),
+    traceGridNavigator: document.getElementById("traceGridNavigator"),
+    traceSidebarProgressText: document.getElementById("traceSidebarProgressText"),
+
+    // Code Writing Elements
+    writingChapterFilters: document.getElementById("writingChapterFilters"),
+    writingResetBtn: document.getElementById("writingResetBtn"),
+    writingCompletedBadge: document.getElementById("writingCompletedBadge"),
+    writingScoreBadge: document.getElementById("writingScoreBadge"),
+    writingSearchInput: document.getElementById("writingSearchInput"),
+    writingCardsContainer: document.getElementById("writingCardsContainer"),
+    writingGridNavigator: document.getElementById("writingGridNavigator"),
+    writingSidebarProgressText: document.getElementById("writingSidebarProgressText"),
+
+    // Design Pattern Elements
+    patternCategoryFilters: document.getElementById("patternCategoryFilters"),
+    patternResetBtn: document.getElementById("patternResetBtn"),
+    patternCompletedBadge: document.getElementById("patternCompletedBadge"),
+    patternScoreBadge: document.getElementById("patternScoreBadge"),
+    patternSearchInput: document.getElementById("patternSearchInput"),
+    patternCardsContainer: document.getElementById("patternCardsContainer"),
+    patternGridNavigator: document.getElementById("patternGridNavigator"),
+    patternSidebarProgressText: document.getElementById("patternSidebarProgressText")
   };
 
   // =========================================================================
@@ -118,13 +160,9 @@
   function formatMarkdown(text) {
     if (!text) return "";
     let html = escapeHtml(text);
-    // Bold
     html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-    // Inline code
     html = html.replace(/`([^`]+)`/g, '<code style="background:rgba(59,130,246,0.15);color:#38bdf8;padding:2px 6px;border-radius:4px;font-family:var(--font-mono);font-size:0.9em;">$1</code>');
-    // LaTeX formulas (inline $...$)
     html = html.replace(/\$([^\$]+)\$/g, '<em style="font-family:var(--font-mono);color:#93c5fd;">$1</em>');
-    // Newlines to br
     html = html.replace(/\n/g, '<br/>');
     return html;
   }
@@ -133,12 +171,17 @@
     localStorage.setItem("oop_mcq_answers", JSON.stringify(state.mcq.userAnswers));
   }
 
-  function saveWrittenAnswers() {
-    localStorage.setItem("oop_written_answers", JSON.stringify(state.written.userAnswers));
+  function saveTraceAnswers() {
+    localStorage.setItem("oop_trace_answers", JSON.stringify(state.trace.userAnswers));
   }
 
-  function getCurrentExam() {
-    return ALL_EXAMS.find(e => e.id === state.written.currentExamId) || ALL_EXAMS[0];
+  function saveWritingData() {
+    localStorage.setItem("oop_writing_codes", JSON.stringify(state.writing.userCode));
+    localStorage.setItem("oop_writing_checklists", JSON.stringify(state.writing.checklistState));
+  }
+
+  function savePatternData() {
+    localStorage.setItem("oop_pattern_choices", JSON.stringify(state.pattern.userChoices));
   }
 
   // =========================================================================
@@ -149,12 +192,14 @@
     document.documentElement.setAttribute("data-theme", state.theme);
     updateThemeIcon();
 
-    // 2. Render MCQ Section
-    renderMCQSection();
+    // 2. Restore active section
+    switchMainSection(state.activeMainSection);
 
-    // 3. Render Written Section
-    renderWrittenTabs();
-    renderWrittenSection();
+    // 3. Render All 4 Sections
+    renderMCQSection();
+    renderTraceSection();
+    renderWritingSection();
+    renderPatternSection();
 
     // 4. Render Cheatsheet
     renderTrapCheatsheet();
@@ -162,7 +207,7 @@
     // 5. Global Event Listeners
     setupGlobalEventListeners();
 
-    // Expose helpers on window for inline handlers
+    // Expose helpers for inline calls
     window.filterMCQChapter = function (ch) {
       state.mcq.activeChapter = ch;
       if (el.mcqChapterFilters) {
@@ -174,15 +219,88 @@
     };
 
     window.scrollMCQQuestion = function (qId) {
-      const targetCard = document.getElementById(`mcq_card_${qId}`);
-      if (targetCard) {
-        targetCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        targetCard.style.boxShadow = "0 0 0 2px var(--primary), 0 0 20px rgba(59,130,246,0.3)";
-        setTimeout(() => {
-          targetCard.style.boxShadow = "";
-        }, 1500);
-      }
+      state.mcq.lastQuestionId = qId;
+      localStorage.setItem("oop_last_mcq_qid", qId);
+      renderMCQGridNavigator();
+      scrollToCard(`mcq_card_${qId}`, "var(--primary)");
     };
+
+    window.filterTraceChapter = function (ch) {
+      state.trace.activeChapter = ch;
+      if (el.traceChapterFilters) {
+        el.traceChapterFilters.querySelectorAll('.filter-chip').forEach(btn => {
+          btn.classList.toggle('active', btn.getAttribute('data-trace-chapter') === ch);
+        });
+      }
+      renderTraceSection();
+    };
+
+    window.scrollTraceQuestion = function (qId) {
+      state.trace.lastQuestionId = qId;
+      localStorage.setItem("oop_last_trace_qid", qId);
+      renderTraceGridNavigator();
+      scrollToCard(`trace_card_${qId}`, "var(--warning)");
+    };
+
+    window.filterWritingChapter = function (ch) {
+      state.writing.activeChapter = ch;
+      if (el.writingChapterFilters) {
+        el.writingChapterFilters.querySelectorAll('.filter-chip').forEach(btn => {
+          btn.classList.toggle('active', btn.getAttribute('data-writing-chapter') === ch);
+        });
+      }
+      renderWritingSection();
+    };
+
+    window.scrollWritingQuestion = function (qId) {
+      state.writing.lastQuestionId = qId;
+      localStorage.setItem("oop_last_writing_qid", qId);
+      renderWritingGridNavigator();
+      scrollToCard(`writing_card_${qId}`, "var(--cyan)");
+    };
+
+    window.filterPatternCategory = function (cat) {
+      state.pattern.activeCategory = cat;
+      if (el.patternCategoryFilters) {
+        el.patternCategoryFilters.querySelectorAll('.filter-chip').forEach(btn => {
+          btn.classList.toggle('active', btn.getAttribute('data-pattern-cat') === cat);
+        });
+      }
+      renderPatternSection();
+    };
+
+    window.scrollPatternQuestion = function (qId) {
+      state.pattern.lastQuestionId = qId;
+      localStorage.setItem("oop_last_pattern_qid", qId);
+      renderPatternGridNavigator();
+      scrollToCard(`pattern_card_${qId}`, "var(--success)");
+    };
+  }
+
+  function scrollToCard(cardId, glowColor) {
+    const target = document.getElementById(cardId);
+    if (target) {
+      target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      target.style.boxShadow = `0 0 0 2px ${glowColor}, 0 0 20px ${glowColor}55`;
+      setTimeout(() => { target.style.boxShadow = ""; }, 1500);
+    }
+  }
+
+  function switchMainSection(section) {
+    state.activeMainSection = section;
+    localStorage.setItem("oop_active_section", section);
+
+    // Buttons
+    if (el.btnNavMCQ) el.btnNavMCQ.classList.toggle('active', section === 'mcq');
+    if (el.btnNavTrace) el.btnNavTrace.classList.toggle('active', section === 'trace');
+    if (el.btnNavWriting) el.btnNavWriting.classList.toggle('active', section === 'writing');
+    if (el.btnNavPattern) el.btnNavPattern.classList.toggle('active', section === 'pattern');
+
+    // Sections
+    if (el.mcqSection) el.mcqSection.style.display = (section === 'mcq') ? 'block' : 'none';
+    if (el.codeTraceSection) el.codeTraceSection.style.display = (section === 'trace') ? 'block' : 'none';
+    if (el.codeWritingSection) el.codeWritingSection.style.display = (section === 'writing') ? 'block' : 'none';
+    if (el.designPatternSection) el.designPatternSection.style.display = (section === 'pattern') ? 'block' : 'none';
   }
 
   // =========================================================================
@@ -214,13 +332,9 @@
     el.timerDisplay.textContent = formatTime(state.timer.remainingSeconds);
     const box = el.timerDisplay.closest('.timer-box');
     if (box) {
-      if (state.timer.remainingSeconds <= 300) {
-        box.className = "timer-box danger";
-      } else if (state.timer.remainingSeconds <= 900) {
-        box.className = "timer-box warning";
-      } else {
-        box.className = "timer-box";
-      }
+      if (state.timer.remainingSeconds <= 300) box.className = "timer-box danger";
+      else if (state.timer.remainingSeconds <= 900) box.className = "timer-box warning";
+      else box.className = "timer-box";
     }
   }
 
@@ -254,7 +368,7 @@
   }
 
   // =========================================================================
-  // SECTION 1: 50 ENGLISH MCQs MODULE
+  // PHÂN HỆ 1: 50 ENGLISH MCQs ENGINE
   // =========================================================================
   function renderMCQSection() {
     const questions = filterMCQQuestions();
@@ -265,22 +379,15 @@
 
   function filterMCQQuestions() {
     return MCQ_ENGLISH_50.filter(q => {
-      // Chapter filter
-      if (state.mcq.activeChapter !== "all" && q.chapter !== state.mcq.activeChapter) {
-        return false;
-      }
-      // Difficulty filter
-      if (state.mcq.activeDifficulty !== "all" && q.difficulty !== state.mcq.activeDifficulty) {
-        return false;
-      }
-      // Search query
+      if (state.mcq.activeChapter !== "all" && q.chapter !== state.mcq.activeChapter) return false;
+      if (state.mcq.activeDifficulty !== "all" && q.difficulty !== state.mcq.activeDifficulty) return false;
       if (state.mcq.searchQuery.trim() !== "") {
         const query = state.mcq.searchQuery.toLowerCase();
         const matchQ = q.question.toLowerCase().includes(query);
         const matchCode = q.code && q.code.toLowerCase().includes(query);
         const matchTags = q.tags && q.tags.some(t => t.toLowerCase().includes(query));
-        const matchExplanation = q.explanation && q.explanation.toLowerCase().includes(query);
-        if (!matchQ && !matchCode && !matchTags && !matchExplanation) return false;
+        const matchExp = q.explanation && q.explanation.toLowerCase().includes(query);
+        if (!matchQ && !matchCode && !matchTags && !matchExp) return false;
       }
       return true;
     });
@@ -293,7 +400,6 @@
       el.mcqCardsContainer.innerHTML = `
         <div style="text-align:center; padding:50px 20px; background:var(--bg-card); border-radius:var(--radius-lg); border:1px solid var(--border-color); color:var(--text-secondary);">
           <p style="font-size:18px; font-weight:600; margin-bottom:8px;">🔍 Không tìm thấy câu hỏi nào phù hợp với bộ lọc.</p>
-          <p style="font-size:13px; color:var(--text-muted); margin-bottom:16px;">Thử chọn lại tất cả chương hoặc độ khó.</p>
           <button class="btn btn-primary btn-sm" onclick="window.filterMCQChapter('all')">Xem tất cả 50 câu</button>
         </div>
       `;
@@ -306,23 +412,16 @@
       const isCorrect = savedAnswer !== undefined && savedAnswer === q.correctIndex;
       const letters = ['A', 'B', 'C', 'D'];
 
-      // Options HTML
       const optionsHtml = q.options.map((optText, optIdx) => {
         let itemClass = "mcq-option-item";
         const isSelected = savedAnswer === optIdx;
-
         if (isSelected) itemClass += " selected";
 
-        // If in practice mode checked OR submitted in exam mode
         if (isChecked) {
-          if (optIdx === q.correctIndex) {
-            itemClass += " is-correct";
-          } else if (isSelected && optIdx !== q.correctIndex) {
-            itemClass += " is-wrong";
-          }
+          if (optIdx === q.correctIndex) itemClass += " is-correct";
+          else if (isSelected && optIdx !== q.correctIndex) itemClass += " is-wrong";
         }
 
-        // Clean option text by removing leading "A. ", "B. ", etc. if present
         let cleanText = optText.replace(/^[A-D]\.\s*/, '');
 
         return `
@@ -335,27 +434,23 @@
         `;
       }).join("");
 
-      // Code Block
       const codeHtml = q.code ? `
         <div class="code-container" style="margin-bottom:16px;">
           <div class="code-header">
             <span>C++ Snippet</span>
-            <button class="btn btn-outline btn-sm" onclick="navigator.clipboard.writeText(\`${escapeHtml(q.code).replace(/`/g, '\\`')}\`); alert('Copied code snippet!');" style="padding:2px 8px; font-size:11px;">Copy</button>
+            <button class="btn btn-outline btn-sm" onclick="navigator.clipboard.writeText(\`${escapeHtml(q.code).replace(/`/g, '\\`')}\`); alert('Copied code!');" style="padding:2px 8px; font-size:11px;">Copy</button>
           </div>
           <pre class="code-content" style="font-size:12.5px;"><code>${escapeHtml(q.code)}</code></pre>
         </div>
       ` : "";
 
-      // Tags
       const tagsHtml = (q.tags || []).map(t => `<span class="mcq-tag-pill">#${escapeHtml(t)}</span>`).join(" ");
 
-      // Difficulty Badge
       let diffBadge = "";
       if (q.difficulty === "easy") diffBadge = '<span class="diff-badge diff-easy">🟢 Easy</span>';
       else if (q.difficulty === "medium") diffBadge = '<span class="diff-badge diff-medium">🟡 Medium</span>';
       else if (q.difficulty === "hard") diffBadge = '<span class="diff-badge diff-hard">🔴 Hard / Trap</span>';
 
-      // Status indicator
       let statusIndicator = "";
       if (isChecked) {
         statusIndicator = isCorrect
@@ -365,8 +460,6 @@
         statusIndicator = `<span style="color:var(--cyan); font-size:12.5px;">Đã chọn: ${letters[savedAnswer]}</span>`;
       }
 
-      // Explanation panel
-      const showExplanation = isChecked || state.mcq.mode === "practice";
       const explanationHtml = `
         <div class="mcq-explanation-box" id="mcq_exp_${q.id}" style="${isChecked ? 'display:block;' : 'display:none;'}">
           <div style="font-weight:700; color:#38bdf8; margin-bottom:8px;">💡 DETAILED EXPLANATION & KEY CONCEPTS:</div>
@@ -387,15 +480,9 @@
             </div>
           </div>
 
-          <div class="mcq-question-text">
-            ${formatMarkdown(q.question)}
-          </div>
-
+          <div class="mcq-question-text">${formatMarkdown(q.question)}</div>
           ${codeHtml}
-
-          <div class="mcq-options-container">
-            ${optionsHtml}
-          </div>
+          <div class="mcq-options-container">${optionsHtml}</div>
 
           <div class="mcq-actions-bar">
             <div>${statusIndicator}</div>
@@ -405,7 +492,7 @@
                   ${isChecked ? '📖 Xem Giải Thích' : '✓ Kiểm Tra Ngay'}
                 </button>
               ` : `
-                <span style="font-size:12px; color:var(--text-muted);">Chế độ thi thử: Nộp bài để xem điểm</span>
+                <span style="font-size:12px; color:var(--text-muted);">Chế độ thi thử</span>
               `}
             </div>
           </div>
@@ -419,17 +506,16 @@
   }
 
   function attachMCQOptionListeners() {
-    // 1. Option click
     document.querySelectorAll('.mcq-option-item').forEach(item => {
       item.addEventListener('click', () => {
         const qId = item.getAttribute('data-qid');
         const optIdx = parseInt(item.getAttribute('data-opt-idx'), 10);
 
-        // Save answer
         state.mcq.userAnswers[qId] = optIdx;
+        state.mcq.lastQuestionId = qId;
+        localStorage.setItem("oop_last_mcq_qid", qId);
         saveMCQAnswers();
 
-        // In practice mode, if already checked or checking immediately:
         if (state.mcq.mode === "practice") {
           state.mcq.checkedQuestions[qId] = true;
         }
@@ -438,10 +524,11 @@
       });
     });
 
-    // 2. Check button click (Practice mode)
     document.querySelectorAll('.btn-mcq-check').forEach(btn => {
       btn.addEventListener('click', () => {
         const qId = btn.getAttribute('data-qid');
+        state.mcq.lastQuestionId = qId;
+        localStorage.setItem("oop_last_mcq_qid", qId);
         const expBox = document.getElementById(`mcq_exp_${qId}`);
         state.mcq.checkedQuestions[qId] = true;
         if (expBox) {
@@ -467,6 +554,8 @@
         btnClass += " answered";
       }
 
+      if (q.id === state.mcq.lastQuestionId) btnClass += " last-active";
+
       return `
         <button class="${btnClass}" onclick="window.scrollMCQQuestion('${q.id}')" title="Q${q.number}: ${escapeHtml(q.tags ? q.tags.join(', ') : '')}">
           ${q.number}
@@ -488,12 +577,8 @@
       }
     });
 
-    if (el.mcqAnsweredBadge) {
-      el.mcqAnsweredBadge.textContent = `${answeredCount} / ${total}`;
-    }
-    if (el.sidebarProgressText) {
-      el.sidebarProgressText.textContent = `${answeredCount}/${total} (${Math.round((answeredCount / total) * 100)}%)`;
-    }
+    if (el.mcqAnsweredBadge) el.mcqAnsweredBadge.textContent = `${answeredCount} / ${total}`;
+    if (el.sidebarProgressText) el.sidebarProgressText.textContent = `${answeredCount}/${total} (${Math.round((answeredCount / total) * 100)}%)`;
     if (el.mcqScoreBadge) {
       const accuracy = answeredCount > 0 ? Math.round((correctCount / answeredCount) * 100) : 0;
       el.mcqScoreBadge.textContent = `${accuracy}% (${correctCount} đúng)`;
@@ -506,7 +591,6 @@
     let answeredCount = 0;
     let correctCount = 0;
 
-    // Breakdown per chapter
     const chapterStats = {
       ch5: { name: "Ch 5: Inheritance & Polymorphism", total: 0, correct: 0 },
       ch6: { name: "Ch 6: Relationships & File I/O", total: 0, correct: 0 },
@@ -531,7 +615,6 @@
 
     renderMCQSection();
 
-    // Show summary modal
     const finalScore = ((correctCount / total) * 10).toFixed(2);
     let gradeMsg = "Cần cố gắng thêm!";
     let gradeColor = "var(--warning)";
@@ -582,514 +665,440 @@
   }
 
   // =========================================================================
-  // SECTION 2: WRITTEN 4 STANDARD TYPES MODULE
+  // PHÂN HỆ 2: DẠNG 2 - ĐỌC CODE ĐOÁN OUTPUT ENGINE (35 BÀI)
   // =========================================================================
-  function renderWrittenTabs() {
-    if (!el.examTabs) return;
+  function renderTraceSection() {
+    const questions = filterTraceQuestions();
+    renderTraceCards(questions);
+    renderTraceGridNavigator();
+    updateTraceStats();
+  }
 
-    el.examTabs.innerHTML = ALL_EXAMS.map(exam => {
-      const isActive = exam.id === state.written.currentExamId;
-      return `
-        <button class="exam-tab-btn ${isActive ? 'active' : ''}" data-exam-id="${exam.id}">
-          <span>📄</span>
-          <span>${exam.id === 'de5' ? '⭐ Đề 05 (Tổng Hợp)' : 'Đề ' + exam.id.replace('de', '')}</span>
-        </button>
-      `;
-    }).join("");
-
-    el.examTabs.querySelectorAll('.exam-tab-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
-        const examId = btn.getAttribute('data-exam-id');
-        if (examId !== state.written.currentExamId) {
-          state.written.currentExamId = examId;
-          renderWrittenTabs();
-          renderWrittenSection();
-          resetTimer();
-        }
-      });
+  function filterTraceQuestions() {
+    return CODE_TRACE_BANK.filter(q => {
+      if (state.trace.activeChapter !== "all" && q.chapter !== state.trace.activeChapter) return false;
+      if (state.trace.activeDifficulty !== "all" && q.difficulty !== state.trace.activeDifficulty) return false;
+      if (state.trace.searchQuery.trim() !== "") {
+        const query = state.trace.searchQuery.toLowerCase();
+        const matchTitle = q.title.toLowerCase().includes(query);
+        const matchCode = q.code.toLowerCase().includes(query);
+        const matchTrap = q.trapRef && q.trapRef.toLowerCase().includes(query);
+        const matchTags = q.tags && q.tags.some(t => t.toLowerCase().includes(query));
+        if (!matchTitle && !matchCode && !matchTrap && !matchTags) return false;
+      }
+      return true;
     });
   }
 
-  function renderWrittenSection() {
-    if (state.written.viewMode === "exam") {
-      renderWrittenExamMode();
-    } else {
-      renderWrittenBankMode();
-    }
-  }
-
-  function renderWrittenExamMode() {
-    const exam = getCurrentExam();
-    if (el.examTitle) el.examTitle.textContent = exam.title;
-    if (el.examSubtitle) el.examSubtitle.textContent = exam.subtitle;
-    if (el.examTimeBadge) el.examTimeBadge.textContent = `${exam.timeMinutes || 90} Phút`;
-    if (el.totalQuestionsBadge) el.totalQuestionsBadge.textContent = `${exam.questions.length} Câu (Đủ 4 Dạng)`;
-
-    const filter = state.written.activeExamFilter;
-    const filteredQuestions = filter === "all"
-      ? exam.questions
-      : exam.questions.filter(q => q.type === filter);
-
-    renderWrittenQuestionCards(filteredQuestions);
-  }
-
-  function renderWrittenBankMode() {
-    const bankType = state.written.activeBankType;
-    const questions = QUESTION_BANK_4TYPES[bankType] || [];
-
-    const typeNames = {
-      theory: "Dạng 1: Lý Thuyết & Bản Chất OOP (Câu 1)",
-      code_trace: "Dạng 2: Đọc Code Đoán Output & Bẫy Code (Câu 2)",
-      code_writing: "Dạng 3: Viết Code C++ & Rule of Three/Template (Câu 3)",
-      design_pattern: "Dạng 4: Thiết Kế Kiến Trúc & Design Pattern (Câu 4)"
-    };
-
-    if (el.examTitle) el.examTitle.textContent = `Kho Bài Tập: ${typeNames[bankType]}`;
-    if (el.examSubtitle) el.examSubtitle.textContent = `Luyện tập chuyên sâu từng dạng bài với đa dạng độ khó từ cơ bản đến nâng cao.`;
-    if (el.examTimeBadge) el.examTimeBadge.textContent = "Tự Luyện";
-    if (el.totalQuestionsBadge) el.totalQuestionsBadge.textContent = `${questions.length} Bài Tập`;
-
-    renderWrittenQuestionCards(questions);
-  }
-
-  function renderWrittenQuestionCards(questions) {
-    if (!el.questionsContainer) return;
+  function renderTraceCards(questions) {
+    if (!el.traceCardsContainer) return;
 
     if (questions.length === 0) {
-      el.questionsContainer.innerHTML = `
-        <div style="text-align:center; padding:40px; color:var(--text-secondary);">
-          <p style="font-size:18px; margin-bottom:8px;">Không có câu hỏi nào thuộc bộ lọc này.</p>
+      el.traceCardsContainer.innerHTML = `
+        <div style="text-align:center; padding:50px 20px; background:var(--bg-card); border-radius:var(--radius-lg); border:1px solid var(--border-color); color:var(--text-secondary);">
+          <p style="font-size:18px; font-weight:600; margin-bottom:8px;">🔍 Không tìm thấy bài tập nào phù hợp với bộ lọc.</p>
+          <button class="btn btn-primary btn-sm" onclick="window.filterTraceChapter('all')">Xem tất cả 35 bài</button>
         </div>
       `;
       return;
     }
 
-    el.questionsContainer.innerHTML = questions.map(q => {
-      let bodyHtml = "";
-      if (q.type === "theory") bodyHtml = renderTheoryQuestion(q);
-      else if (q.type === "code_trace") bodyHtml = renderCodeTraceQuestion(q);
-      else if (q.type === "code_writing") bodyHtml = renderCodeWritingQuestion(q);
-      else if (q.type === "design_pattern") bodyHtml = renderDesignPatternQuestion(q);
+    el.traceCardsContainer.innerHTML = questions.map(q => {
+      const savedData = state.trace.userAnswers[q.id] || { userOutput: "", isChecked: false, isCorrect: false };
+      const isChecked = savedData.isChecked || state.trace.isSubmitted;
+      const isCorrect = savedData.isCorrect;
+
+      let diffBadge = "";
+      if (q.difficulty === "easy") diffBadge = '<span class="diff-badge diff-easy">🟢 Easy</span>';
+      else if (q.difficulty === "medium") diffBadge = '<span class="diff-badge diff-medium">🟡 Medium</span>';
+      else if (q.difficulty === "hard") diffBadge = '<span class="diff-badge diff-hard">🔴 Hard / Bẫy</span>';
+
+      const tagsHtml = (q.tags || []).map(t => `<span class="mcq-tag-pill">#${escapeHtml(t)}</span>`).join(" ");
+
+      const trapBadge = q.trapRef ? `
+        <div style="margin-top:8px; font-size:12.5px; color:#fca5a5; background:rgba(239,68,68,0.1); padding:4px 10px; border-radius:4px; border-left:3px solid var(--danger);">
+          ⚠️ <strong>Điểm bẫy:</strong> ${escapeHtml(q.trapRef)}
+        </div>
+      ` : "";
+
+      const stepsHtml = (q.stepByStepAnalysis || []).map(step => `
+        <div class="trace-step-item">
+          <div class="step-num">${step.step}</div>
+          <div class="step-content">
+            <div><strong>${escapeHtml(step.line)}</strong></div>
+            <div style="font-size:13px; color:var(--text-secondary); margin-top:4px;">${formatMarkdown(step.explanation)}</div>
+          </div>
+        </div>
+      `).join("");
+
+      let matchBadgeHtml = '<span class="badge badge-blue">Chưa kiểm tra</span>';
+      let diffContentHtml = '<span style="color:var(--text-muted); font-style:italic;">Nhập output bên trái rồi bấm "Kiểm tra Output" để so sánh với kết quả thực thi.</span>';
+
+      if (isChecked) {
+        if (isCorrect) {
+          matchBadgeHtml = '<span class="badge badge-green">✓ Khớp 100% (+2.0đ)</span>';
+          diffContentHtml = `
+            <div style="color:var(--success); font-weight:700; margin-bottom:4px;">🎉 Chính xác tuyệt đối! Output khớp hoàn toàn:</div>
+            <pre style="background:rgba(16,185,129,0.1); border:1px solid var(--success); padding:8px; border-radius:4px; color:#6ee7b7; font-family:var(--font-mono); font-size:12.5px;"><code>${escapeHtml(q.expectedOutput)}</code></pre>
+          `;
+        } else {
+          matchBadgeHtml = '<span class="badge badge-red">✕ Chưa khớp Output</span>';
+          diffContentHtml = `
+            <div style="margin-bottom:6px; color:#fca5a5; font-size:12.5px;">⚠️ <strong>Đáp án chưa khớp:</strong></div>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; font-size:12px;">
+              <div>
+                <span style="color:var(--text-muted);">Output bạn nhập:</span>
+                <pre style="background:rgba(239,68,68,0.1); border:1px solid var(--danger); padding:6px; border-radius:4px; color:#fca5a5; margin-top:2px; font-family:var(--font-mono);"><code>${escapeHtml(savedData.userOutput || "(Trống)")}</code></pre>
+              </div>
+              <div>
+                <span style="color:var(--text-muted);">Output chuẩn:</span>
+                <pre style="background:rgba(16,185,129,0.1); border:1px solid var(--success); padding:6px; border-radius:4px; color:#6ee7b7; margin-top:2px; font-family:var(--font-mono);"><code>${escapeHtml(q.expectedOutput)}</code></pre>
+              </div>
+            </div>
+          `;
+        }
+      }
 
       return `
-        <div class="question-card fade-in" id="q_card_${q.id}" data-qid="${q.id}">
+        <div class="question-card fade-in" id="trace_card_${q.id}" data-qid="${q.id}">
           <div class="question-header">
             <div class="question-title-area">
-              ${getBadgeForType(q.type, q.number)}
+              <span class="q-badge q-badge-c2">BÀI ${q.number} · DẠNG 2 (2.0đ)</span>
               <h3 class="question-title">${escapeHtml(q.title)}</h3>
             </div>
-            <div class="question-meta">
-              <span>Điểm: <strong style="color:var(--cyan); font-family:var(--font-mono);">${q.maxScore.toFixed(1)}đ</strong></span>
-            </div>
+            <div class="question-meta">${diffBadge}</div>
           </div>
+
           <div class="question-body">
-            ${bodyHtml}
-          </div>
-        </div>
-      `;
-    }).join("");
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; flex-wrap:wrap;">
+              <span style="font-size:12px; color:var(--text-muted);">Chủ đề: <strong>${escapeHtml(q.chapterName)}</strong></span>
+              <div style="display:flex; gap:6px;">${tagsHtml}</div>
+            </div>
 
-    attachWrittenCardListeners();
-  }
+            ${trapBadge}
 
-  function getBadgeForType(type, number) {
-    switch (type) {
-      case "theory":
-        return `<span class="q-badge q-badge-c1">CÂU ${number} · LÝ THUYẾT (2.0đ)</span>`;
-      case "code_trace":
-        return `<span class="q-badge q-badge-c2">CÂU ${number} · ĐỌC CODE → OUTPUT (2.0đ)</span>`;
-      case "code_writing":
-        return `<span class="q-badge q-badge-c3">CÂU ${number} · VIẾT CODE (3.0đ)</span>`;
-      case "design_pattern":
-        return `<span class="q-badge q-badge-c4">CÂU ${number} · THIẾT KẾ KIẾN TRÚC (3.0đ)</span>`;
-      default:
-        return `<span class="q-badge">CÂU ${number}</span>`;
-    }
-  }
+            <div class="code-container" style="margin-top:12px; margin-bottom:16px;">
+              <div class="code-header">
+                <span>Source Code (C++)</span>
+                <button class="btn btn-outline btn-sm" onclick="navigator.clipboard.writeText(\`${escapeHtml(q.code).replace(/`/g, '\\`')}\`); alert('Đã copy code!');" style="padding:2px 8px; font-size:11px;">Copy Code</button>
+              </div>
+              <pre class="code-content" style="font-size:12.5px;"><code>${escapeHtml(q.code)}</code></pre>
+            </div>
 
-  // 1. Render Theory
-  function renderTheoryQuestion(q) {
-    const savedAns = state.written.userAnswers[q.id] || {};
-    const subQuestionsHtml = (q.subQuestions || []).map((subQ, idx) => {
-      const selectedIndex = savedAns[`sub_${idx}`];
-      return `
-        <div class="sub-q-block" data-sub-idx="${idx}">
-          <div class="sub-q-title"><strong>1.${idx + 1}.</strong> ${escapeHtml(subQ.question)}</div>
-          <div class="options-list">
-            ${subQ.options.map((opt, optIdx) => {
-        const isChecked = selectedIndex === optIdx ? "checked" : "";
-        return `
-                <label class="option-label" data-opt-idx="${optIdx}">
-                  <input type="radio" name="theory_${q.id}_sub_${idx}" value="${optIdx}" ${isChecked}>
-                  <span>${escapeHtml(opt)}</span>
-                </label>
-              `;
-      }).join("")}
-          </div>
-          <div class="sub-q-feedback" id="feedback_${q.id}_${idx}" style="margin-top:10px; display:none;"></div>
-        </div>
-      `;
-    }).join("");
-
-    return `
-      <div class="prompt-box">
-        <h4>📋 YÊU CẦU ĐỀ BÀI:</h4>
-        ${formatMarkdown(q.prompt)}
-        <div class="slide-ref-tag">
-          <span>📚 Nguồn slide:</span> <strong>${escapeHtml(q.slideRef)}</strong>
-        </div>
-      </div>
-
-      <div class="theory-sub-questions">
-        <h4 style="margin-bottom:12px; font-size:14px; color:var(--text-secondary);">TRẮC NGHIỆM KIỂM TRA HIỂU SÂU BẢN CHẤT:</h4>
-        ${subQuestionsHtml}
-      </div>
-
-      <div style="display:flex; gap:10px; margin-top:16px; flex-wrap:wrap;">
-        <button class="btn btn-primary btn-sm btn-check-theory" data-qid="${q.id}">
-          ✓ Kiểm tra đáp án trắc nghiệm
-        </button>
-        <button class="btn btn-secondary btn-sm btn-toggle-theory-ans" data-qid="${q.id}">
-          📖 Xem bài giải lý thuyết chi tiết & trích dẫn
-        </button>
-      </div>
-
-      <div class="theory-solution-panel" id="solution_${q.id}" style="display:none; margin-top:16px;">
-        <h4 style="color:var(--primary); margin-bottom:10px;">💡 BÀI GIẢI LÝ THUYẾT CHI TIẾT THEO BAREM FIT-HCMUS:</h4>
-        <div style="line-height:1.7;">${formatMarkdown(q.detailedAnswer)}</div>
-      </div>
-    `;
-  }
-
-  // 2. Render Code Trace
-  function renderCodeTraceQuestion(q) {
-    const savedOutput = state.written.userAnswers[q.id]?.userOutput || "";
-    const stepsHtml = (q.stepByStepAnalysis || []).map(step => `
-      <div class="trace-step-item">
-        <div class="step-num">${step.step}</div>
-        <div class="step-content">
-          <div><strong>${escapeHtml(step.line)}</strong></div>
-          <div style="font-size:13.5px; color:var(--text-secondary); margin-top:4px;">${formatMarkdown(step.explanation)}</div>
-        </div>
-      </div>
-    `).join("");
-
-    return `
-      <div class="prompt-box" style="margin-bottom:14px;">
-        <h4>📝 ĐỀ BÀI:</h4>
-        <p>Đọc đoạn mã nguồn C++ dưới đây và ghi chính xác chuỗi kết quả (output) in ra màn hình console.</p>
-        <div class="slide-ref-tag">
-          <span>📚 Kiến thức:</span> <strong>${escapeHtml(q.slideRef)}</strong> &nbsp;|&nbsp;
-          <span>⚠️ Điểm bẫy:</span> <strong style="color:var(--warning);">${escapeHtml(q.trapRef || "")}</strong>
-        </div>
-      </div>
-
-      <div class="code-container">
-        <div class="code-header">
-          <span>Source Code (C++)</span>
-          <button class="btn btn-outline btn-sm" onclick="navigator.clipboard.writeText(\`${escapeHtml(q.code).replace(/`/g, '\\`')}\`); alert('Đã copy code!');" style="padding:2px 8px; font-size:11px;">Copy Code</button>
-        </div>
-        <pre class="code-content"><code>${escapeHtml(q.code)}</code></pre>
-      </div>
-
-      <div class="trace-input-section">
-        <div>
-          <div class="input-box-label">
-            <span>⌨️ Output của bạn:</span>
-            <span style="font-size:11px; color:var(--text-muted);">Gõ chính xác khoảng trắng & xuống dòng</span>
-          </div>
-          <textarea class="output-textarea" id="input_${q.id}" placeholder="Nhập chuỗi output bạn đoán vào đây...">${escapeHtml(savedOutput)}</textarea>
-        </div>
-        <div>
-          <div class="input-box-label">
-            <span>📊 Kết quả so sánh (Diff Check):</span>
-            <span id="match_badge_${q.id}" class="badge badge-blue">Chưa kiểm tra</span>
-          </div>
-          <div class="diff-box" id="diff_${q.id}">
-            <span style="color:var(--text-muted); font-style:italic;">Nhập output bên trái rồi bấm nút "Kiểm tra Output" để so sánh với đáp án chuẩn.</span>
-          </div>
-        </div>
-      </div>
-
-      <div style="display:flex; gap:10px; margin-bottom:14px; flex-wrap:wrap;">
-        <button class="btn btn-primary btn-sm btn-check-trace" data-qid="${q.id}">
-          🔍 Kiểm tra Output
-        </button>
-        <button class="btn btn-secondary btn-sm btn-toggle-trace-steps" data-qid="${q.id}">
-          🔎 Xem phân tích từng bước (Step-by-step trace)
-        </button>
-      </div>
-
-      <div class="trace-steps-accordion" id="steps_acc_${q.id}" style="display:none;">
-        <div class="accordion-header">
-          <span>🧠 GIẢI THÍCH CHI TIẾT TỪNG BƯỚC THỰC THI & PHÂN TÍCH BẪY CODE</span>
-        </div>
-        <div class="accordion-body">
-          ${stepsHtml}
-        </div>
-      </div>
-    `;
-  }
-
-  // 3. Render Code Writing
-  function renderCodeWritingQuestion(q) {
-    const savedCode = state.written.userAnswers[q.id]?.userCode !== undefined
-      ? state.written.userAnswers[q.id].userCode
-      : q.starterCode;
-
-    const checklistSaved = state.written.userAnswers[q.id]?.checklist || {};
-
-    const checklistHtml = (q.checklist || []).map(item => {
-      const isChecked = checklistSaved[item.id] ? "checked" : "";
-      return `
-        <label class="check-item">
-          <input type="checkbox" class="checklist-box" data-qid="${q.id}" data-cid="${item.id}" data-weight="${item.weight}" ${isChecked}>
-          <span>${formatMarkdown(item.label)} <strong style="color:var(--cyan); font-family:var(--font-mono);">(+${item.weight}đ)</strong></span>
-        </label>
-      `;
-    }).join("");
-
-    return `
-      <div class="prompt-box">
-        <h4>📋 ĐỀ BÀI & YÊU CẦU:</h4>
-        ${formatMarkdown(q.prompt)}
-        <div class="slide-ref-tag">
-          <span>📚 Nguồn slide:</span> <strong>${escapeHtml(q.slideRef)}</strong>
-        </div>
-      </div>
-
-      <div class="checklist-container">
-        <div class="checklist-title">
-          <span>🎯 BAREM TỰ ĐÁNH GIÁ TIÊU CHÍ KỸ THUẬT (SELF-CHECKLIST):</span>
-          <span id="check_score_${q.id}" style="color:var(--success); font-family:var(--font-mono); font-size:13px;">0.0 / ${q.maxScore.toFixed(1)}đ</span>
-        </div>
-        <div class="checklist-items">
-          ${checklistHtml}
-        </div>
-      </div>
-
-      <div class="code-editor-wrapper">
-        <div class="editor-toolbar">
-          <span style="font-size:12px; color:var(--text-secondary);">Code Editor (Hỗ trợ phím Tab thụt lề 4 spaces)</span>
-          <div style="display:flex; gap:6px;">
-            <button class="btn btn-outline btn-sm btn-reset-code" data-qid="${q.id}" style="padding:2px 8px; font-size:11px;">Khôi phục mẫu ban đầu</button>
-            <button class="btn btn-outline btn-sm btn-copy-editor" data-qid="${q.id}" style="padding:2px 8px; font-size:11px;">Copy Code của bạn</button>
-          </div>
-        </div>
-        <textarea class="code-editor-textarea" id="editor_${q.id}" placeholder="Viết mã nguồn C++ của bạn tại đây...">${escapeHtml(savedCode)}</textarea>
-      </div>
-
-      <div style="display:flex; gap:10px; margin-top:14px; flex-wrap:wrap;">
-        <button class="btn btn-secondary btn-sm btn-toggle-code-sol" data-qid="${q.id}">
-          ✨ Xem Code chuẩn của giảng viên & phân tích barem
-        </button>
-      </div>
-
-      <div class="code-container" id="sol_container_${q.id}" style="display:none; margin-top:16px;">
-        <div class="code-header" style="background:#064e3b; color:#a7f3d0;">
-          <span>C++ Reference Solution (Code Chuẩn Tối Ưu)</span>
-          <button class="btn btn-outline btn-sm" onclick="navigator.clipboard.writeText(\`${escapeHtml(q.solutionCode).replace(/`/g, '\\`')}\`); alert('Đã copy code mẫu!');" style="padding:2px 8px; font-size:11px; color:#a7f3d0; border-color:#059669;">Copy Code Mẫu</button>
-        </div>
-        <pre class="code-content" style="background:#022c22; color:#d1fae5;"><code>${escapeHtml(q.solutionCode)}</code></pre>
-      </div>
-    `;
-  }
-
-  // 4. Render Design Pattern
-  function renderDesignPatternQuestion(q) {
-    const savedPattern = state.written.userAnswers[q.id]?.selectedPattern;
-    const patternOptionsHtml = (q.patternOptions || []).map(opt => {
-      const isChecked = savedPattern === opt.id ? "checked" : "";
-      return `
-        <label class="pattern-choice-card" data-pat-id="${opt.id}">
-          <input type="radio" name="pattern_${q.id}" value="${opt.id}" ${isChecked}>
-          <strong style="margin-left:6px;">${escapeHtml(opt.name)}</strong>
-        </label>
-      `;
-    }).join("");
-
-    const roleMappingRows = (q.roleMapping || []).map(r => `
-      <tr>
-        <td style="font-weight:600; color:var(--cyan); font-family:var(--font-mono); width:35%;">${escapeHtml(r.role)}</td>
-        <td style="color:var(--text-secondary);">${formatMarkdown(r.requirement)}</td>
-      </tr>
-    `).join("");
-
-    return `
-      <div class="prompt-box">
-        <h4>🏢 TÌNH HUỐNG THIẾT KẾ THỰC TẾ (SCENARIO):</h4>
-        ${formatMarkdown(q.scenario)}
-        <div class="slide-ref-tag">
-          <span>📚 Lý thuyết áp dụng:</span> <strong>${escapeHtml(q.slideRef)}</strong>
-        </div>
-      </div>
-
-      <div class="pattern-selection-box">
-        <h4 style="font-size:14px; color:var(--warning); margin-bottom:8px;">BƯỚC 1: LỰA CHỌN MẪU THIẾT KẾ (DESIGN PATTERN) PHÙ HỢP:</h4>
-        <div class="pattern-options-grid">
-          ${patternOptionsHtml}
-        </div>
-        <div id="pat_feedback_${q.id}" style="margin-top:12px; display:none;"></div>
-      </div>
-
-      <div class="pattern-selection-box">
-        <h4 style="font-size:14px; color:var(--cyan); margin-bottom:8px;">BƯỚC 2: PHÂN RÃ VAI TRÒ & THÀNH PHẦN KIẾN TRÚC (ROLE MAPPING):</h4>
-        <table class="role-mapping-table">
-          <thead>
-            <tr>
-              <th>Thành phần / Vai trò trong Pattern</th>
-              <th>Mục đích & Trách nhiệm kỹ thuật</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${roleMappingRows}
-          </tbody>
-        </table>
-      </div>
-
-      <div class="uml-visual-box">
-        <div style="font-size:13px; font-weight:700; color:#38bdf8; margin-bottom:8px;">BƯỚC 3: SƠ ĐỒ LỚP UML (CLASS DIAGRAM NOTATION):</div>
-        <pre style="color:#cbd5e1; font-size:12.5px; line-height:1.4; background:rgba(0,0,0,0.3); padding:12px; border-radius:6px;"><code>${escapeHtml(q.umlDiagram.trim())}</code></pre>
-      </div>
-
-      <div style="display:flex; gap:10px; margin-top:14px; flex-wrap:wrap;">
-        <button class="btn btn-primary btn-sm btn-check-pattern" data-qid="${q.id}">
-          ✓ Đánh giá lựa chọn Pattern
-        </button>
-        <button class="btn btn-secondary btn-sm btn-toggle-skeleton" data-qid="${q.id}">
-          🏛️ Xem Khung Code Thiết Kế Kiến Trúc (C++ Skeleton)
-        </button>
-      </div>
-
-      <div class="code-container" id="skeleton_box_${q.id}" style="display:none; margin-top:16px;">
-        <div class="code-header" style="background:#312e81; color:#c7d2fe;">
-          <span>C++ Architectural Skeleton & Implementation</span>
-          <button class="btn btn-outline btn-sm" onclick="navigator.clipboard.writeText(\`${escapeHtml(q.designSkeleton).replace(/`/g, '\\`')}\`); alert('Đã copy khung thiết kế!');" style="padding:2px 8px; font-size:11px; color:#c7d2fe; border-color:#6366f1;">Copy Skeleton</button>
-        </div>
-        <pre class="code-content" style="background:#1e1b4b; color:#e0e7ff;"><code>${escapeHtml(q.designSkeleton)}</code></pre>
-      </div>
-    `;
-  }
-
-  function attachWrittenCardListeners() {
-    // 1. Theory listeners
-    document.querySelectorAll('.btn-check-theory').forEach(btn => {
-      btn.addEventListener('click', () => {
-        const qid = btn.getAttribute('data-qid');
-        const q = findWrittenQuestionById(qid);
-        if (!q || !q.subQuestions) return;
-
-        q.subQuestions.forEach((subQ, idx) => {
-          const selected = document.querySelector(`input[name="theory_${qid}_sub_${idx}"]:checked`);
-          const fbEl = document.getElementById(`feedback_${qid}_${idx}`);
-          const block = document.querySelector(`.sub-q-block[data-sub-idx="${idx}"]`);
-
-          if (!selected) {
-            if (fbEl) {
-              fbEl.style.display = "block";
-              fbEl.innerHTML = `<span style="color:var(--warning);">⚠️ Bạn chưa chọn câu trả lời.</span>`;
-            }
-            return;
-          }
-
-          const val = parseInt(selected.value, 10);
-          if (!state.written.userAnswers[qid]) state.written.userAnswers[qid] = {};
-          state.written.userAnswers[qid][`sub_${idx}`] = val;
-          saveWrittenAnswers();
-
-          const labels = block ? block.querySelectorAll('.option-label') : [];
-          labels.forEach((lbl, oIdx) => {
-            lbl.classList.remove('correct-choice', 'wrong-choice');
-            if (oIdx === subQ.correctIndex) lbl.classList.add('correct-choice');
-            else if (oIdx === val) lbl.classList.add('wrong-choice');
-          });
-
-          if (fbEl) {
-            fbEl.style.display = "block";
-            fbEl.innerHTML = (val === subQ.correctIndex)
-              ? `<div style="color:var(--success); font-size:13px;">✓ <strong>Chính xác:</strong> ${escapeHtml(subQ.explanation)}</div>`
-              : `<div style="color:var(--danger); font-size:13px;">✕ <strong>Chưa chính xác:</strong> ${escapeHtml(subQ.explanation)}</div>`;
-          }
-        });
-      });
-    });
-
-    document.querySelectorAll('.btn-toggle-theory-ans').forEach(btn => {
-      btn.addEventListener('click', () => {
-        const qid = btn.getAttribute('data-qid');
-        const p = document.getElementById(`solution_${qid}`);
-        if (p) p.style.display = p.style.display === "none" ? "block" : "none";
-      });
-    });
-
-    // 2. Code trace listeners
-    document.querySelectorAll('.btn-check-trace').forEach(btn => {
-      btn.addEventListener('click', () => {
-        const qid = btn.getAttribute('data-qid');
-        const q = findWrittenQuestionById(qid);
-        if (!q) return;
-
-        const inputEl = document.getElementById(`input_${qid}`);
-        const diffBox = document.getElementById(`diff_${qid}`);
-        const badge = document.getElementById(`match_badge_${qid}`);
-        const val = inputEl ? inputEl.value : "";
-
-        if (!state.written.userAnswers[qid]) state.written.userAnswers[qid] = {};
-        state.written.userAnswers[qid].userOutput = val;
-        saveWrittenAnswers();
-
-        // Normalize string
-        const cleanUser = val.trim().replace(/\r\n/g, '\n').replace(/[ \t]+/g, ' ');
-        const cleanExpected = q.expectedOutput.trim().replace(/\r\n/g, '\n').replace(/[ \t]+/g, ' ');
-        const altMatches = (q.alternativeOutputs || []).some(alt => alt.trim().replace(/\r\n/g, '\n').replace(/[ \t]+/g, ' ') === cleanUser);
-
-        if (cleanUser === cleanExpected || altMatches) {
-          if (badge) {
-            badge.className = "badge badge-green";
-            badge.textContent = "✓ Hoàn toàn chính xác (+2.0đ)";
-          }
-          if (diffBox) {
-            diffBox.innerHTML = `
-              <div style="color:var(--success); font-weight:700; margin-bottom:4px;">🎉 Tuyệt vời! Output của bạn khớp 100% với chương trình:</div>
-              <pre style="background:rgba(16,185,129,0.1); border:1px solid var(--success); padding:8px; border-radius:4px; color:#6ee7b7;"><code>${escapeHtml(q.expectedOutput)}</code></pre>
-            `;
-          }
-        } else {
-          if (badge) {
-            badge.className = "badge badge-red";
-            badge.textContent = "✕ Chưa khớp output";
-          }
-          if (diffBox) {
-            diffBox.innerHTML = `
-              <div style="margin-bottom:6px; color:#fca5a5;">⚠️ <strong>Đáp án chưa khớp:</strong></div>
-              <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; font-size:12px;">
-                <div>
-                  <span style="color:var(--text-muted);">Output bạn nhập:</span>
-                  <pre style="background:rgba(239,68,68,0.1); border:1px solid var(--danger); padding:6px; border-radius:4px; color:#fca5a5; margin-top:2px;"><code>${escapeHtml(val || "(Trống)")}</code></pre>
+            <div class="trace-input-section">
+              <div>
+                <div class="input-box-label">
+                  <span>⌨️ Output của bạn:</span>
+                  <span style="font-size:11px; color:var(--text-muted);">Gõ chính xác khoảng trắng & xuống dòng</span>
                 </div>
-                <div>
-                  <span style="color:var(--text-muted);">Output chuẩn:</span>
-                  <pre style="background:rgba(16,185,129,0.1); border:1px solid var(--success); padding:6px; border-radius:4px; color:#6ee7b7; margin-top:2px;"><code>${escapeHtml(q.expectedOutput)}</code></pre>
+                <textarea class="output-textarea" id="trace_input_${q.id}" placeholder="Nhập chuỗi output bạn đoán vào đây...">${escapeHtml(savedData.userOutput)}</textarea>
+              </div>
+              <div>
+                <div class="input-box-label">
+                  <span>📊 Kết quả so sánh (Diff Check):</span>
+                  <span id="trace_badge_${q.id}">${matchBadgeHtml}</span>
+                </div>
+                <div class="diff-box" id="trace_diff_${q.id}">
+                  ${diffContentHtml}
                 </div>
               </div>
-            `;
-          }
+            </div>
+
+            <div style="display:flex; gap:10px; margin-top:14px; flex-wrap:wrap;">
+              <button class="btn btn-primary btn-sm btn-check-trace-item" data-qid="${q.id}">
+                🔍 Kiểm tra Output
+              </button>
+              <button class="btn btn-secondary btn-sm btn-toggle-trace-accordion" data-qid="${q.id}">
+                🔎 Xem phân tích từng bước (Step-by-step trace)
+              </button>
+            </div>
+
+            <div class="trace-steps-accordion" id="trace_steps_${q.id}" style="display:none; margin-top:16px;">
+              <div class="accordion-header">
+                <span>🧠 GIẢI THÍCH CHI TIẾT TỪNG BƯỚC THỰC THI & BẢN CHẤT BẪY CODE</span>
+              </div>
+              <div class="accordion-body">${stepsHtml}</div>
+            </div>
+          </div>
+        </div>
+      `;
+    }).join("");
+
+    attachTraceListeners();
+  }
+
+  function attachTraceListeners() {
+    document.querySelectorAll('.output-textarea').forEach(textarea => {
+      textarea.addEventListener('input', () => {
+        const qId = textarea.id.replace('trace_input_', '');
+        if (!state.trace.userAnswers[qId]) {
+          state.trace.userAnswers[qId] = { userOutput: "", isChecked: false, isCorrect: false };
+        }
+        state.trace.userAnswers[qId].userOutput = textarea.value;
+        state.trace.lastQuestionId = qId;
+        localStorage.setItem("oop_last_trace_qid", qId);
+        saveTraceAnswers();
+        renderTraceGridNavigator();
+        updateTraceStats();
+      });
+    });
+
+    document.querySelectorAll('.btn-check-trace-item').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const qId = btn.getAttribute('data-qid');
+        const q = CODE_TRACE_BANK.find(item => item.id === qId);
+        if (!q) return;
+
+        const inputEl = document.getElementById(`trace_input_${qId}`);
+        const userVal = inputEl ? inputEl.value : "";
+
+        const cleanUser = userVal.trim().replace(/\r\n/g, '\n').replace(/[ \t]+/g, ' ');
+        const cleanExp = q.expectedOutput.trim().replace(/\r\n/g, '\n').replace(/[ \t]+/g, ' ');
+        const altMatch = (q.alternativeOutputs || []).some(alt => alt.trim().replace(/\r\n/g, '\n').replace(/[ \t]+/g, ' ') === cleanUser);
+
+        const isCorrect = (cleanUser === cleanExp || altMatch);
+
+        state.trace.userAnswers[qId] = {
+          userOutput: userVal,
+          isChecked: true,
+          isCorrect: isCorrect
+        };
+        state.trace.lastQuestionId = qId;
+        localStorage.setItem("oop_last_trace_qid", qId);
+        saveTraceAnswers();
+
+        renderTraceSection();
+      });
+    });
+
+    document.querySelectorAll('.btn-toggle-trace-accordion').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const qId = btn.getAttribute('data-qid');
+        const acc = document.getElementById(`trace_steps_${qId}`);
+        if (acc) {
+          acc.style.display = acc.style.display === "none" ? "block" : "none";
         }
       });
     });
+  }
 
-    document.querySelectorAll('.btn-toggle-trace-steps').forEach(btn => {
-      btn.addEventListener('click', () => {
-        const qid = btn.getAttribute('data-qid');
-        const acc = document.getElementById(`steps_acc_${qid}`);
-        if (acc) acc.style.display = acc.style.display === "none" ? "block" : "none";
-      });
+  function renderTraceGridNavigator() {
+    if (!el.traceGridNavigator) return;
+
+    el.traceGridNavigator.innerHTML = CODE_TRACE_BANK.map(q => {
+      const saved = state.trace.userAnswers[q.id];
+      let btnClass = "grid-q-btn";
+
+      if (saved && saved.isChecked) {
+        btnClass += saved.isCorrect ? " correct" : " wrong";
+      } else if (saved && saved.userOutput && saved.userOutput.trim() !== "") {
+        btnClass += " answered";
+      }
+
+      if (q.id === state.trace.lastQuestionId) btnClass += " last-active";
+
+      return `
+        <button class="${btnClass}" onclick="window.scrollTraceQuestion('${q.id}')" title="Bài ${q.number}: ${escapeHtml(q.title)}">
+          ${q.number}
+        </button>
+      `;
+    }).join("");
+  }
+
+  function updateTraceStats() {
+    const total = CODE_TRACE_BANK.length;
+    let answeredCount = 0;
+    let correctCount = 0;
+
+    CODE_TRACE_BANK.forEach(q => {
+      const saved = state.trace.userAnswers[q.id];
+      if (saved && saved.userOutput && saved.userOutput.trim() !== "") answeredCount++;
+      if (saved && saved.isCorrect) correctCount++;
     });
 
-    // 3. Code writing listeners
+    if (el.traceAnsweredBadge) el.traceAnsweredBadge.textContent = `${answeredCount} / ${total}`;
+    if (el.traceSidebarProgressText) el.traceSidebarProgressText.textContent = `${answeredCount}/${total} (${Math.round((answeredCount / total) * 100)}%)`;
+    if (el.traceScoreBadge) {
+      const accuracy = answeredCount > 0 ? Math.round((correctCount / answeredCount) * 100) : 0;
+      el.traceScoreBadge.textContent = `${accuracy}% (${correctCount} đúng)`;
+    }
+  }
+
+  function submitTraceExam() {
+    state.trace.isSubmitted = true;
+    const total = CODE_TRACE_BANK.length;
+    let correctCount = 0;
+
+    CODE_TRACE_BANK.forEach(q => {
+      const saved = state.trace.userAnswers[q.id];
+      if (saved && saved.userOutput && saved.userOutput.trim() !== "") {
+        const cleanUser = saved.userOutput.trim().replace(/\r\n/g, '\n').replace(/[ \t]+/g, ' ');
+        const cleanExp = q.expectedOutput.trim().replace(/\r\n/g, '\n').replace(/[ \t]+/g, ' ');
+        const altMatch = (q.alternativeOutputs || []).some(alt => alt.trim().replace(/\r\n/g, '\n').replace(/[ \t]+/g, ' ') === cleanUser);
+        if (cleanUser === cleanExp || altMatch) {
+          saved.isCorrect = true;
+          correctCount++;
+        } else {
+          saved.isCorrect = false;
+        }
+        saved.isChecked = true;
+      }
+    });
+
+    saveTraceAnswers();
+    renderTraceSection();
+
+    const finalScore = ((correctCount / total) * 10).toFixed(2);
+    if (el.summaryContent) {
+      el.summaryContent.innerHTML = `
+        <div style="text-align:center; padding:10px 0 20px;">
+          <div style="font-size:48px; font-weight:800; color:var(--success); font-family:var(--font-mono);">${finalScore} / 10.0</div>
+          <div style="font-size:16px; font-weight:700; color:var(--text-primary); margin-top:4px;">Kết Quả Dạng 2 (Đọc Code Đoán Output)</div>
+          <div style="color:var(--text-secondary); font-size:13px; margin-top:4px;">Đúng ${correctCount} / ${total} bài tập</div>
+        </div>
+        <div style="margin-top:20px; text-align:center;">
+          <button class="btn btn-primary btn-sm" onclick="document.getElementById('summaryModal').classList.remove('active');">
+            🔍 Xem Lại Bài Làm
+          </button>
+        </div>
+      `;
+    }
+    if (el.summaryModal) el.summaryModal.classList.add('active');
+  }
+
+  function resetTraceAnswers() {
+    if (confirm("Bạn có chắc chắn muốn xóa toàn bộ output đã nhập và làm lại từ đầu 35 bài Dạng 2?")) {
+      state.trace.userAnswers = {};
+      state.trace.isSubmitted = false;
+      saveTraceAnswers();
+      renderTraceSection();
+    }
+  }
+
+  // =========================================================================
+  // PHÂN HỆ 3: DẠNG 3 - VIẾT CODE C++ ENGINE (15 BÀI)
+  // =========================================================================
+  function renderWritingSection() {
+    const questions = filterWritingQuestions();
+    renderWritingCards(questions);
+    renderWritingGridNavigator();
+    updateWritingStats();
+  }
+
+  function filterWritingQuestions() {
+    return CODE_WRITING_BANK.filter(q => {
+      if (state.writing.activeChapter !== "all" && q.chapter !== state.writing.activeChapter) return false;
+      if (state.writing.activeDifficulty !== "all" && q.difficulty !== state.writing.activeDifficulty) return false;
+      if (state.writing.searchQuery.trim() !== "") {
+        const query = state.writing.searchQuery.toLowerCase();
+        const matchTitle = q.title.toLowerCase().includes(query);
+        const matchDesc = q.description.toLowerCase().includes(query);
+        if (!matchTitle && !matchDesc) return false;
+      }
+      return true;
+    });
+  }
+
+  function renderWritingCards(questions) {
+    if (!el.writingCardsContainer) return;
+
+    if (questions.length === 0) {
+      el.writingCardsContainer.innerHTML = `
+        <div style="text-align:center; padding:50px 20px; background:var(--bg-card); border-radius:var(--radius-lg); border:1px solid var(--border-color); color:var(--text-secondary);">
+          <p style="font-size:18px; font-weight:600; margin-bottom:8px;">🔍 Không tìm thấy bài tập nào phù hợp.</p>
+          <button class="btn btn-primary btn-sm" onclick="window.filterWritingChapter('all')">Xem tất cả 15 bài</button>
+        </div>
+      `;
+      return;
+    }
+
+    el.writingCardsContainer.innerHTML = questions.map(q => {
+      const savedCode = state.writing.userCode[q.id] !== undefined ? state.writing.userCode[q.id] : q.starterCode;
+      const checkedMap = state.writing.checklistState[q.id] || {};
+
+      let diffBadge = "";
+      if (q.difficulty === "easy") diffBadge = '<span class="diff-badge diff-easy">🟢 Easy</span>';
+      else if (q.difficulty === "medium") diffBadge = '<span class="diff-badge diff-medium">🟡 Medium</span>';
+      else if (q.difficulty === "hard") diffBadge = '<span class="diff-badge diff-hard">🔴 Hard</span>';
+
+      // Checklist HTML
+      let currentPoints = 0;
+      const checklistHtml = (q.checklist || []).map(item => {
+        const isChecked = !!checkedMap[item.id];
+        if (isChecked) currentPoints += item.points;
+        return `
+          <label class="rubric-item" style="display:flex; align-items:center; gap:8px; padding:6px 0; cursor:pointer; font-size:13px;">
+            <input type="checkbox" class="writing-check-item" data-qid="${q.id}" data-cid="${item.id}" ${isChecked ? 'checked' : ''} style="width:16px; height:16px; cursor:pointer;" />
+            <span style="flex:1; color:${isChecked ? 'var(--text-primary)' : 'var(--text-secondary)'};">${formatMarkdown(item.text)}</span>
+          </label>
+        `;
+      }).join("");
+
+      return `
+        <div class="question-card fade-in" id="writing_card_${q.id}" data-qid="${q.id}">
+          <div class="question-header">
+            <div class="question-title-area">
+              <span class="q-badge q-badge-c3">BÀI ${q.number} · DẠNG 3 (3.0đ)</span>
+              <h3 class="question-title">${escapeHtml(q.title)}</h3>
+            </div>
+            <div class="question-meta">${diffBadge}</div>
+          </div>
+
+          <div class="question-body">
+            <div style="font-size:13.5px; line-height:1.6; margin-bottom:14px; color:var(--text-primary);">
+              ${formatMarkdown(q.description)}
+            </div>
+
+            <!-- Code Editor Box -->
+            <div class="code-editor-wrapper" style="margin-bottom:16px;">
+              <div class="code-editor-header" style="display:flex; justify-content:space-between; align-items:center; padding:8px 14px; background:var(--bg-primary); border-top-left-radius:var(--radius-md); border-top-right-radius:var(--radius-md); border:1px solid var(--border-color); border-bottom:none;">
+                <span style="font-family:var(--font-mono); font-size:12px; color:var(--cyan); font-weight:600;">💻 Trình Soạn Thảo C++ (Hỗ trợ phím Tab thụt lề)</span>
+                <div style="display:flex; gap:8px;">
+                  <button class="btn btn-outline btn-sm btn-reset-writing-code" data-qid="${q.id}" style="padding:2px 8px; font-size:11px;">Khôi phục code mẫu</button>
+                  <button class="btn btn-outline btn-sm" onclick="navigator.clipboard.writeText(document.getElementById('editor_${q.id}').value); alert('Đã copy code của bạn!');" style="padding:2px 8px; font-size:11px;">Copy Code</button>
+                </div>
+              </div>
+              <textarea class="code-editor-textarea" id="editor_${q.id}" data-qid="${q.id}" spellcheck="false" placeholder="Viết code C++ hoàn chỉnh vào đây...">${escapeHtml(savedCode)}</textarea>
+            </div>
+
+            <!-- Rubric Checklist -->
+            <div class="rubric-container" style="background:var(--bg-card-alt); border:1px solid var(--border-color); border-radius:var(--radius-md); padding:14px; margin-bottom:14px;">
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; border-bottom:1px solid var(--border-color); padding-bottom:6px;">
+                <span style="font-weight:700; font-size:13px; color:var(--cyan);">📋 Barem Tự Đánh Giá (Checklist Tiêu Chí Kỹ Thuật):</span>
+                <strong style="color:var(--success); font-family:var(--font-mono); font-size:13px;" id="score_label_${q.id}">${currentPoints.toFixed(1)} / 3.0đ</strong>
+              </div>
+              <div class="rubric-list">${checklistHtml}</div>
+            </div>
+
+            <!-- Teacher Solution Toggle -->
+            <div>
+              <button class="btn btn-secondary btn-sm btn-toggle-solution" data-qid="${q.id}">
+                ✨ Xem Mã Nguồn Chuẩn Của Giảng Viên
+              </button>
+
+              <div class="solution-container" id="solution_${q.id}" style="display:none; margin-top:12px;">
+                <div class="code-container">
+                  <div class="code-header">
+                    <span>Mã Nguồn Mẫu (Giảng Viên)</span>
+                    <button class="btn btn-outline btn-sm" onclick="navigator.clipboard.writeText(\`${escapeHtml(q.solutionCode).replace(/`/g, '\\`')}\`); alert('Đã copy code mẫu!');" style="padding:2px 8px; font-size:11px;">Copy Code Mẫu</button>
+                  </div>
+                  <pre class="code-content" style="font-size:12.5px;"><code>${escapeHtml(q.solutionCode)}</code></pre>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      `;
+    }).join("");
+
+    attachWritingListeners();
+  }
+
+  function attachWritingListeners() {
+    // 1. Textarea with TAB indentation
     document.querySelectorAll('.code-editor-textarea').forEach(textarea => {
-      // Tab key support
-      textarea.addEventListener('keydown', e => {
+      textarea.addEventListener('keydown', (e) => {
         if (e.key === 'Tab') {
           e.preventDefault();
           const start = textarea.selectionStart;
@@ -1100,182 +1109,356 @@
       });
 
       textarea.addEventListener('input', () => {
-        const qid = textarea.id.replace('editor_', '');
-        if (!state.written.userAnswers[qid]) state.written.userAnswers[qid] = {};
-        state.written.userAnswers[qid].userCode = textarea.value;
-        saveWrittenAnswers();
+        const qId = textarea.getAttribute('data-qid');
+        state.writing.userCode[qId] = textarea.value;
+        state.writing.lastQuestionId = qId;
+        localStorage.setItem("oop_last_writing_qid", qId);
+        saveWritingData();
+        renderWritingGridNavigator();
+        updateWritingStats();
       });
     });
 
-    document.querySelectorAll('.checklist-box').forEach(box => {
-      box.addEventListener('change', () => {
-        const qid = box.getAttribute('data-qid');
-        const cid = box.getAttribute('data-cid');
-        if (!state.written.userAnswers[qid]) state.written.userAnswers[qid] = {};
-        if (!state.written.userAnswers[qid].checklist) state.written.userAnswers[qid].checklist = {};
-        state.written.userAnswers[qid].checklist[cid] = box.checked;
-        saveWrittenAnswers();
-        updateChecklistScore(qid);
+    // 2. Checklist checkboxes
+    document.querySelectorAll('.writing-check-item').forEach(checkbox => {
+      checkbox.addEventListener('change', () => {
+        const qId = checkbox.getAttribute('data-qid');
+        const cId = checkbox.getAttribute('data-cid');
+        if (!state.writing.checklistState[qId]) state.writing.checklistState[qId] = {};
+        state.writing.checklistState[qId][cId] = checkbox.checked;
+        saveWritingData();
+        renderWritingSection();
       });
     });
 
-    document.querySelectorAll('.btn-reset-code').forEach(btn => {
+    // 3. Reset starter code
+    document.querySelectorAll('.btn-reset-writing-code').forEach(btn => {
       btn.addEventListener('click', () => {
-        const qid = btn.getAttribute('data-qid');
-        const q = findWrittenQuestionById(qid);
-        if (q && confirm("Khôi phục code về đoạn mã khung ban đầu?")) {
-          const ed = document.getElementById(`editor_${qid}`);
-          if (ed) ed.value = q.starterCode;
-          if (!state.written.userAnswers[qid]) state.written.userAnswers[qid] = {};
-          state.written.userAnswers[qid].userCode = q.starterCode;
-          saveWrittenAnswers();
+        const qId = btn.getAttribute('data-qid');
+        const q = CODE_WRITING_BANK.find(item => item.id === qId);
+        if (q && confirm("Khôi phục mã nguồn ban đầu của bài này?")) {
+          state.writing.userCode[qId] = q.starterCode;
+          saveWritingData();
+          renderWritingSection();
         }
       });
     });
 
-    document.querySelectorAll('.btn-copy-editor').forEach(btn => {
+    // 4. Toggle solution
+    document.querySelectorAll('.btn-toggle-solution').forEach(btn => {
       btn.addEventListener('click', () => {
-        const qid = btn.getAttribute('data-qid');
-        const ed = document.getElementById(`editor_${qid}`);
-        if (ed) {
-          navigator.clipboard.writeText(ed.value);
-          alert("Đã copy code của bạn vào bộ nhớ tạm!");
+        const qId = btn.getAttribute('data-qid');
+        const box = document.getElementById(`solution_${qId}`);
+        if (box) {
+          box.style.display = box.style.display === "none" ? "block" : "none";
         }
       });
     });
+  }
 
-    document.querySelectorAll('.btn-toggle-code-sol').forEach(btn => {
-      btn.addEventListener('click', () => {
-        const qid = btn.getAttribute('data-qid');
-        const sol = document.getElementById(`sol_container_${qid}`);
-        if (sol) sol.style.display = sol.style.display === "none" ? "block" : "none";
+  function renderWritingGridNavigator() {
+    if (!el.writingGridNavigator) return;
+
+    el.writingGridNavigator.innerHTML = CODE_WRITING_BANK.map(q => {
+      const code = state.writing.userCode[q.id];
+      const checkedMap = state.writing.checklistState[q.id] || {};
+      const checkedCount = Object.values(checkedMap).filter(Boolean).length;
+      let btnClass = "grid-q-btn";
+
+      if (checkedCount >= (q.checklist ? q.checklist.length : 1)) {
+        btnClass += " correct";
+      } else if (code && code.trim() !== "" && code !== q.starterCode) {
+        btnClass += " answered";
+      }
+
+      if (q.id === state.writing.lastQuestionId) btnClass += " last-active";
+
+      return `
+        <button class="${btnClass}" onclick="window.scrollWritingQuestion('${q.id}')" title="Bài ${q.number}: ${escapeHtml(q.title)}">
+          ${q.number}
+        </button>
+      `;
+    }).join("");
+  }
+
+  function updateWritingStats() {
+    const total = CODE_WRITING_BANK.length;
+    let completedCount = 0;
+    let totalScore = 0;
+
+    CODE_WRITING_BANK.forEach(q => {
+      const code = state.writing.userCode[q.id];
+      if (code && code.trim() !== "" && code !== q.starterCode) completedCount++;
+
+      const checkedMap = state.writing.checklistState[q.id] || {};
+      (q.checklist || []).forEach(item => {
+        if (checkedMap[item.id]) totalScore += item.points;
       });
     });
 
-    // 4. Design Pattern listeners
-    document.querySelectorAll('.btn-check-pattern').forEach(btn => {
+    const avgScore = total > 0 ? (totalScore / total).toFixed(1) : "0.0";
+    if (el.writingCompletedBadge) el.writingCompletedBadge.textContent = `${completedCount} / ${total}`;
+    if (el.writingSidebarProgressText) el.writingSidebarProgressText.textContent = `${completedCount}/${total} (${Math.round((completedCount / total) * 100)}%)`;
+    if (el.writingScoreBadge) el.writingScoreBadge.textContent = `${avgScore} / 3.0đ`;
+  }
+
+  function resetAllWriting() {
+    if (confirm("Khôi phục toàn bộ code mẫu ban đầu cho tất cả 15 bài tập viết code?")) {
+      state.writing.userCode = {};
+      state.writing.checklistState = {};
+      saveWritingData();
+      renderWritingSection();
+    }
+  }
+
+  // =========================================================================
+  // PHÂN HỆ 4: DẠNG 4 - THIẾT KẾ KIẾN TRÚC ENGINE (10 BÀI)
+  // =========================================================================
+  function renderPatternSection() {
+    const questions = filterPatternQuestions();
+    renderPatternCards(questions);
+    renderPatternGridNavigator();
+    updatePatternStats();
+  }
+
+  function filterPatternQuestions() {
+    return DESIGN_PATTERN_BANK.filter(q => {
+      if (state.pattern.activeCategory !== "all" && q.category !== state.pattern.activeCategory) return false;
+      if (state.pattern.activeDifficulty !== "all" && q.difficulty !== state.pattern.activeDifficulty) return false;
+      if (state.pattern.searchQuery.trim() !== "") {
+        const query = state.pattern.searchQuery.toLowerCase();
+        const matchTitle = q.title.toLowerCase().includes(query);
+        const matchScen = q.scenario.toLowerCase().includes(query);
+        if (!matchTitle && !matchScen) return false;
+      }
+      return true;
+    });
+  }
+
+  function renderPatternCards(questions) {
+    if (!el.patternCardsContainer) return;
+
+    if (questions.length === 0) {
+      el.patternCardsContainer.innerHTML = `
+        <div style="text-align:center; padding:50px 20px; background:var(--bg-card); border-radius:var(--radius-lg); border:1px solid var(--border-color); color:var(--text-secondary);">
+          <p style="font-size:18px; font-weight:600; margin-bottom:8px;">🔍 Không tìm thấy tình huống kiến trúc nào phù hợp.</p>
+          <button class="btn btn-primary btn-sm" onclick="window.filterPatternCategory('all')">Xem tất cả 10 bài</button>
+        </div>
+      `;
+      return;
+    }
+
+    el.patternCardsContainer.innerHTML = questions.map(q => {
+      const userChoice = state.pattern.userChoices[q.id] || { chosenIdx: -1, isEvaluated: false };
+      const isEvaluated = userChoice.isEvaluated;
+      const isCorrect = userChoice.chosenIdx === q.correctPatternIndex;
+
+      let diffBadge = "";
+      if (q.difficulty === "easy") diffBadge = '<span class="diff-badge diff-easy">🟢 Easy</span>';
+      else if (q.difficulty === "medium") diffBadge = '<span class="diff-badge diff-medium">🟡 Medium</span>';
+      else if (q.difficulty === "hard") diffBadge = '<span class="diff-badge diff-hard">🔴 Hard</span>';
+
+      // Pattern Options Radio Buttons
+      const optionsHtml = q.patternOptions.map((opt, idx) => {
+        const isSelected = userChoice.chosenIdx === idx;
+        let itemClass = "pattern-option-card";
+        if (isSelected) itemClass += " selected";
+        if (isEvaluated) {
+          if (idx === q.correctPatternIndex) itemClass += " is-correct";
+          else if (isSelected && !isCorrect) itemClass += " is-wrong";
+        }
+
+        return `
+          <label class="${itemClass}" style="display:flex; align-items:center; gap:10px; padding:10px 14px; background:var(--bg-primary); border:1px solid var(--border-color); border-radius:var(--radius-sm); margin-bottom:8px; cursor:pointer;">
+            <input type="radio" name="pattern_${q.id}" value="${idx}" class="pattern-radio" data-qid="${q.id}" ${isSelected ? 'checked' : ''} />
+            <span style="font-size:13.5px; font-weight:600;">${escapeHtml(opt)}</span>
+          </label>
+        `;
+      }).join("");
+
+      // Role Mapping Table HTML
+      const roleRowsHtml = (q.roleMapping || []).map(r => `
+        <tr>
+          <td style="padding:8px 12px; border-bottom:1px solid var(--border-color); font-weight:700; color:var(--cyan);">${escapeHtml(r.role)}</td>
+          <td style="padding:8px 12px; border-bottom:1px solid var(--border-color); font-family:var(--font-mono); color:var(--warning);">${escapeHtml(r.className)}</td>
+          <td style="padding:8px 12px; border-bottom:1px solid var(--border-color); color:var(--text-secondary);">${formatMarkdown(r.description)}</td>
+        </tr>
+      `).join("");
+
+      return `
+        <div class="question-card fade-in" id="pattern_card_${q.id}" data-qid="${q.id}">
+          <div class="question-header">
+            <div class="question-title-area">
+              <span class="q-badge q-badge-c4">BÀI ${q.number} · DẠNG 4 (3.0đ)</span>
+              <h3 class="question-title">${escapeHtml(q.title)}</h3>
+            </div>
+            <div class="question-meta">${diffBadge}</div>
+          </div>
+
+          <div class="question-body">
+            <!-- Scenario Box -->
+            <div style="background:var(--bg-card-alt); border-left:4px solid var(--cyan); padding:14px; border-radius:var(--radius-sm); margin-bottom:16px;">
+              <h4 style="font-size:13px; color:var(--cyan); margin-bottom:6px;">📌 TÌNH HUỐNG THỰC TẾ (SCENARIO):</h4>
+              <div style="font-size:13.5px; line-height:1.6; color:var(--text-primary);">${formatMarkdown(q.scenario)}</div>
+            </div>
+
+            <!-- Step 1: Pattern Selection Quiz -->
+            <div style="margin-bottom:18px;">
+              <h4 style="font-size:13.5px; margin-bottom:10px; color:var(--text-primary);">🎯 BƯỚC 1: LỰA CHỌN MẪU THIẾT KẾ (DESIGN PATTERN) PHÙ HỢP:</h4>
+              <div class="pattern-options-group">${optionsHtml}</div>
+              
+              <div style="display:flex; gap:10px; align-items:center; margin-top:10px;">
+                <button class="btn btn-primary btn-sm btn-eval-pattern" data-qid="${q.id}">
+                  ✓ Đánh Giá Lựa Chọn
+                </button>
+                ${isEvaluated ? `
+                  <span style="font-size:13px; font-weight:700; color:${isCorrect ? 'var(--success)' : 'var(--danger)'};">
+                    ${isCorrect ? '🎉 Lựa chọn hoàn toàn chính xác (+1.0đ)' : '✕ Lựa chọn chưa chính xác'}
+                  </span>
+                ` : ''}
+              </div>
+
+              ${isEvaluated ? `
+                <div style="margin-top:10px; padding:10px 14px; background:rgba(59,130,246,0.1); border-left:3px solid var(--primary); border-radius:4px; font-size:13px; color:#93c5fd;">
+                  💡 <strong>Lý do lựa chọn:</strong> ${escapeHtml(q.patternRationale)}
+                </div>
+              ` : ''}
+            </div>
+
+            <!-- Step 2 & 3: Role Mapping & UML Diagram -->
+            <div style="margin-bottom:18px;">
+              <h4 style="font-size:13.5px; margin-bottom:10px; color:var(--text-primary);">🏛️ BƯỚC 2: BẢNG PHÂN RÃ VAI TRÒ THÀNH PHẦN KIẾN TRÚC:</h4>
+              <table style="width:100%; border-collapse:collapse; background:var(--bg-primary); border:1px solid var(--border-color); border-radius:var(--radius-sm); font-size:13px; margin-bottom:14px;">
+                <thead>
+                  <tr style="background:var(--bg-card-alt); text-align:left;">
+                    <th style="padding:8px 12px; border-bottom:1px solid var(--border-color);">Vai Trò (Role)</th>
+                    <th style="padding:8px 12px; border-bottom:1px solid var(--border-color);">Tên Lớp (Class)</th>
+                    <th style="padding:8px 12px; border-bottom:1px solid var(--border-color);">Mô Tả Nhiệm Vụ</th>
+                  </tr>
+                </thead>
+                <tbody>${roleRowsHtml}</tbody>
+              </table>
+
+              <h4 style="font-size:13.5px; margin-bottom:10px; color:var(--text-primary);">📊 BƯỚC 3: SƠ ĐỒ LỚP UML (CLASS DIAGRAM):</h4>
+              <pre style="background:var(--bg-primary); border:1px solid var(--border-color); padding:14px; border-radius:var(--radius-md); color:#38bdf8; font-family:var(--font-mono); font-size:12px; line-height:1.4; overflow-x:auto;"><code>${escapeHtml(q.umlDiagram)}</code></pre>
+            </div>
+
+            <!-- Step 4: C++ Architecture Skeleton Code -->
+            <div>
+              <button class="btn btn-secondary btn-sm btn-toggle-skeleton" data-qid="${q.id}">
+                🏛️ Xem Khung Code Thiết Kế Kiến Trúc (C++ Skeleton)
+              </button>
+
+              <div class="skeleton-container" id="skeleton_${q.id}" style="display:none; margin-top:12px;">
+                <div class="code-container">
+                  <div class="code-header">
+                    <span>C++ Skeleton Architecture</span>
+                    <button class="btn btn-outline btn-sm" onclick="navigator.clipboard.writeText(\`${escapeHtml(q.skeletonCode).replace(/`/g, '\\`')}\`); alert('Đã copy khung code kiến trúc!');" style="padding:2px 8px; font-size:11px;">Copy Khung Code</button>
+                  </div>
+                  <pre class="code-content" style="font-size:12.5px;"><code>${escapeHtml(q.skeletonCode)}</code></pre>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      `;
+    }).join("");
+
+    attachPatternListeners();
+  }
+
+  function attachPatternListeners() {
+    // Radio select
+    document.querySelectorAll('.pattern-radio').forEach(radio => {
+      radio.addEventListener('change', () => {
+        const qId = radio.getAttribute('data-qid');
+        const chosenIdx = parseInt(radio.value, 10);
+        if (!state.pattern.userChoices[qId]) state.pattern.userChoices[qId] = { chosenIdx: -1, isEvaluated: false };
+        state.pattern.userChoices[qId].chosenIdx = chosenIdx;
+        state.pattern.lastQuestionId = qId;
+        localStorage.setItem("oop_last_pattern_qid", qId);
+        savePatternData();
+        renderPatternGridNavigator();
+      });
+    });
+
+    // Evaluate button
+    document.querySelectorAll('.btn-eval-pattern').forEach(btn => {
       btn.addEventListener('click', () => {
-        const qid = btn.getAttribute('data-qid');
-        const q = findWrittenQuestionById(qid);
-        if (!q || !q.patternOptions) return;
-
-        const selected = document.querySelector(`input[name="pattern_${qid}"]:checked`);
-        const fbBox = document.getElementById(`pat_feedback_${qid}`);
-
-        if (!selected) {
-          if (fbBox) {
-            fbBox.style.display = "block";
-            fbBox.innerHTML = `<span style="color:var(--warning);">⚠️ Bạn chưa chọn mẫu thiết kế nào.</span>`;
-          }
+        const qId = btn.getAttribute('data-qid');
+        if (!state.pattern.userChoices[qId] || state.pattern.userChoices[qId].chosenIdx === -1) {
+          alert("Vui lòng chọn 1 mẫu thiết kế trước khi đánh giá!");
           return;
         }
-
-        const selectedId = selected.value;
-        if (!state.written.userAnswers[qid]) state.written.userAnswers[qid] = {};
-        state.written.userAnswers[qid].selectedPattern = selectedId;
-        saveWrittenAnswers();
-
-        const opt = q.patternOptions.find(p => p.id === selectedId);
-        if (fbBox && opt) {
-          fbBox.style.display = "block";
-          fbBox.innerHTML = opt.correct
-            ? `<div style="background:rgba(16,185,129,0.15); border:1px solid var(--success); padding:10px 14px; border-radius:6px; color:#6ee7b7;">🎉 <strong>Chính xác!</strong> ${escapeHtml(opt.reason)}</div>`
-            : `<div style="background:rgba(239,68,68,0.15); border:1px solid var(--danger); padding:10px 14px; border-radius:6px; color:#fca5a5;">✕ <strong>Chưa tối ưu:</strong> ${escapeHtml(opt.reason)}</div>`;
-        }
+        state.pattern.userChoices[qId].isEvaluated = true;
+        state.pattern.lastQuestionId = qId;
+        localStorage.setItem("oop_last_pattern_qid", qId);
+        savePatternData();
+        renderPatternSection();
       });
     });
 
+    // Toggle skeleton
     document.querySelectorAll('.btn-toggle-skeleton').forEach(btn => {
       btn.addEventListener('click', () => {
-        const qid = btn.getAttribute('data-qid');
-        const box = document.getElementById(`skeleton_box_${qid}`);
-        if (box) box.style.display = box.style.display === "none" ? "block" : "none";
+        const qId = btn.getAttribute('data-qid');
+        const box = document.getElementById(`skeleton_${qId}`);
+        if (box) {
+          box.style.display = box.style.display === "none" ? "block" : "none";
+        }
       });
     });
   }
 
-  function findWrittenQuestionById(qid) {
-    // Look in current exam
-    for (const exam of ALL_EXAMS) {
-      const match = exam.questions.find(q => q.id === qid);
-      if (match) return match;
-    }
-    // Look in question bank
-    for (const typeKey of Object.keys(QUESTION_BANK_4TYPES)) {
-      const match = QUESTION_BANK_4TYPES[typeKey].find(q => q.id === qid);
-      if (match) return match;
-    }
-    return null;
+  function renderPatternGridNavigator() {
+    if (!el.patternGridNavigator) return;
+
+    el.patternGridNavigator.innerHTML = DESIGN_PATTERN_BANK.map(q => {
+      const choice = state.pattern.userChoices[q.id];
+      let btnClass = "grid-q-btn";
+
+      if (choice && choice.isEvaluated) {
+        btnClass += (choice.chosenIdx === q.correctPatternIndex) ? " correct" : " wrong";
+      } else if (choice && choice.chosenIdx !== -1) {
+        btnClass += " answered";
+      }
+
+      if (q.id === state.pattern.lastQuestionId) btnClass += " last-active";
+
+      return `
+        <button class="${btnClass}" onclick="window.scrollPatternQuestion('${q.id}')" title="Bài ${q.number}: ${escapeHtml(q.title)}">
+          ${q.number}
+        </button>
+      `;
+    }).join("");
   }
 
-  function updateChecklistScore(qid) {
-    const q = findWrittenQuestionById(qid);
-    if (!q || !q.checklist) return;
+  function updatePatternStats() {
+    const total = DESIGN_PATTERN_BANK.length;
+    let completedCount = 0;
+    let correctCount = 0;
 
-    const saved = state.written.userAnswers[qid]?.checklist || {};
-    let totalScore = 0;
-
-    q.checklist.forEach(item => {
-      if (saved[item.id]) totalScore += item.weight;
-    });
-
-    const scoreEl = document.getElementById(`check_score_${qid}`);
-    if (scoreEl) scoreEl.textContent = `${totalScore.toFixed(2)} / ${q.maxScore.toFixed(1)}đ`;
-  }
-
-  function submitWrittenExam() {
-    const exam = getCurrentExam();
-    let totalScore = 0;
-    const maxScore = 10.0;
-
-    // Evaluate subquestions and checklists
-    exam.questions.forEach(q => {
-      const ans = state.written.userAnswers[q.id] || {};
-      if (q.type === "theory" && q.subQuestions) {
-        let correctSub = 0;
-        q.subQuestions.forEach((subQ, idx) => {
-          if (ans[`sub_${idx}`] === subQ.correctIndex) correctSub++;
-        });
-        totalScore += (correctSub / q.subQuestions.length) * q.maxScore;
-      } else if (q.type === "code_trace") {
-        const cleanUser = (ans.userOutput || "").trim().replace(/\r\n/g, '\n').replace(/[ \t]+/g, ' ');
-        const cleanExp = q.expectedOutput.trim().replace(/\r\n/g, '\n').replace(/[ \t]+/g, ' ');
-        if (cleanUser === cleanExp) totalScore += q.maxScore;
-      } else if (q.type === "code_writing" && q.checklist) {
-        const cl = ans.checklist || {};
-        q.checklist.forEach(item => {
-          if (cl[item.id]) totalScore += item.weight;
-        });
-      } else if (q.type === "design_pattern" && q.patternOptions) {
-        const correctPat = q.patternOptions.find(p => p.correct);
-        if (ans.selectedPattern && correctPat && ans.selectedPattern === correctPat.id) {
-          totalScore += q.maxScore;
-        }
+    DESIGN_PATTERN_BANK.forEach(q => {
+      const choice = state.pattern.userChoices[q.id];
+      if (choice && choice.isEvaluated) {
+        completedCount++;
+        if (choice.chosenIdx === q.correctPatternIndex) correctCount++;
       }
     });
 
-    const finalScore = Math.min(10.0, totalScore).toFixed(1);
-    let gradeMsg = "Cần ôn tập thêm!";
-    let gradeColor = "var(--warning)";
-    if (finalScore >= 8.5) { gradeMsg = "Xuất Sắc! Điểm A+ chuẩn mực!"; gradeColor = "var(--success)"; }
-    else if (finalScore >= 7.0) { gradeMsg = "Khá Giỏi! Nắm vững 4 dạng bài!"; gradeColor = "var(--cyan)"; }
+    const accuracy = completedCount > 0 ? Math.round((correctCount / completedCount) * 100) : 0;
+    if (el.patternCompletedBadge) el.patternCompletedBadge.textContent = `${completedCount} / ${total}`;
+    if (el.patternSidebarProgressText) el.patternSidebarProgressText.textContent = `${completedCount}/${total} (${Math.round((completedCount / total) * 100)}%)`;
+    if (el.patternScoreBadge) el.patternScoreBadge.textContent = `${accuracy}% (${correctCount} đúng)`;
+  }
 
-    if (el.summaryContent) {
-      el.summaryContent.innerHTML = `
-        <div style="text-align:center; padding:10px 0 20px;">
-          <div style="font-size:48px; font-weight:800; color:${gradeColor}; font-family:var(--font-mono);">${finalScore} / ${maxScore.toFixed(1)}đ</div>
-          <div style="font-size:16px; font-weight:700; color:var(--text-primary); margin-top:4px;">${gradeMsg}</div>
-          <div style="color:var(--text-secondary); font-size:13px; margin-top:4px;">${escapeHtml(exam.title)}</div>
-        </div>
-
-        <div style="margin-top:16px; text-align:center;">
-          <button class="btn btn-primary btn-sm" onclick="document.getElementById('summaryModal').classList.remove('active');">
-            ✕ Đóng & Xem Lại Bài Làm
-          </button>
-        </div>
-      `;
+  function resetAllPatterns() {
+    if (confirm("Xóa toàn bộ lựa chọn và làm lại từ đầu 10 tình huống thiết kế kiến trúc?")) {
+      state.pattern.userChoices = {};
+      savePatternData();
+      renderPatternSection();
     }
-    if (el.summaryModal) el.summaryModal.classList.add('active');
   }
 
   // =========================================================================
@@ -1326,29 +1509,11 @@
   // GLOBAL EVENT LISTENERS
   // =========================================================================
   function setupGlobalEventListeners() {
-    // 1. Main Navigation Switcher (MCQ vs Written)
-    if (el.btnNavMCQ) {
-      el.btnNavMCQ.addEventListener('click', () => {
-        state.activeMainSection = "mcq";
-        el.btnNavMCQ.classList.add('active');
-        el.btnNavWritten.classList.remove('active');
-        el.mcqSection.style.display = "block";
-        el.writtenSection.style.display = "none";
-        renderMCQSection();
-      });
-    }
-
-    if (el.btnNavWritten) {
-      el.btnNavWritten.addEventListener('click', () => {
-        state.activeMainSection = "written";
-        el.btnNavWritten.classList.add('active');
-        el.btnNavMCQ.classList.remove('active');
-        el.mcqSection.style.display = "none";
-        el.writtenSection.style.display = "block";
-        renderWrittenTabs();
-        renderWrittenSection();
-      });
-    }
+    // 1. Navigation Tabs Switcher (4 Tabs)
+    if (el.btnNavMCQ) el.btnNavMCQ.addEventListener('click', () => switchMainSection('mcq'));
+    if (el.btnNavTrace) el.btnNavTrace.addEventListener('click', () => switchMainSection('trace'));
+    if (el.btnNavWriting) el.btnNavWriting.addEventListener('click', () => switchMainSection('writing'));
+    if (el.btnNavPattern) el.btnNavPattern.addEventListener('click', () => switchMainSection('pattern'));
 
     // 2. Timer & Theme
     if (el.themeToggleBtn) el.themeToggleBtn.addEventListener('click', toggleTheme);
@@ -1356,30 +1521,14 @@
     if (el.resetTimerBtn) el.resetTimerBtn.addEventListener('click', resetTimer);
 
     // 3. Cheatsheet Modal
-    if (el.openTrapBtn) {
-      el.openTrapBtn.addEventListener('click', () => {
-        if (el.trapModal) el.trapModal.classList.add('active');
-      });
-    }
-    if (el.closeTrapBtn) {
-      el.closeTrapBtn.addEventListener('click', () => {
-        if (el.trapModal) el.trapModal.classList.remove('active');
-      });
-    }
-    if (el.trapSearchInput) {
-      el.trapSearchInput.addEventListener('input', e => {
-        renderTrapCheatsheet(e.target.value);
-      });
-    }
+    if (el.openTrapBtn) el.openTrapBtn.addEventListener('click', () => el.trapModal && el.trapModal.classList.add('active'));
+    if (el.closeTrapBtn) el.closeTrapBtn.addEventListener('click', () => el.trapModal && el.trapModal.classList.remove('active'));
+    if (el.trapSearchInput) el.trapSearchInput.addEventListener('input', e => renderTrapCheatsheet(e.target.value));
 
     // 4. Summary Modal Close
-    if (el.closeSummaryBtn) {
-      el.closeSummaryBtn.addEventListener('click', () => {
-        if (el.summaryModal) el.summaryModal.classList.remove('active');
-      });
-    }
+    if (el.closeSummaryBtn) el.closeSummaryBtn.addEventListener('click', () => el.summaryModal && el.summaryModal.classList.remove('active'));
 
-    // 5. MCQ Controls
+    // 5. MCQ Events
     if (el.mcqChapterFilters) {
       el.mcqChapterFilters.querySelectorAll('.filter-chip').forEach(btn => {
         btn.addEventListener('click', () => {
@@ -1391,9 +1540,9 @@
       });
     }
 
-    document.querySelectorAll('.diff-btn').forEach(btn => {
+    document.querySelectorAll('[data-diff]').forEach(btn => {
       btn.addEventListener('click', () => {
-        document.querySelectorAll('.diff-btn').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('[data-diff]').forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
         state.mcq.activeDifficulty = btn.getAttribute('data-diff');
         renderMCQSection();
@@ -1428,68 +1577,114 @@
     if (el.mcqSubmitBtn) el.mcqSubmitBtn.addEventListener('click', submitMCQExam);
     if (el.mcqResetBtn) el.mcqResetBtn.addEventListener('click', resetMCQAnswers);
 
-    // 6. Written Controls
-    if (el.writtenModeExamBtn) {
-      el.writtenModeExamBtn.addEventListener('click', () => {
-        state.written.viewMode = "exam";
-        el.writtenModeExamBtn.classList.add('active');
-        el.writtenModeBankBtn.classList.remove('active');
-        if (el.examTabs) el.examTabs.style.display = "flex";
-        if (el.bankTypePills) el.bankTypePills.style.display = "none";
-        if (el.examTypeFilterBar) el.examTypeFilterBar.style.display = "flex";
-        renderWrittenSection();
-      });
-    }
-
-    if (el.writtenModeBankBtn) {
-      el.writtenModeBankBtn.addEventListener('click', () => {
-        state.written.viewMode = "bank";
-        el.writtenModeBankBtn.classList.add('active');
-        el.writtenModeExamBtn.classList.remove('active');
-        if (el.examTabs) el.examTabs.style.display = "none";
-        if (el.bankTypePills) el.bankTypePills.style.display = "flex";
-        if (el.examTypeFilterBar) el.examTypeFilterBar.style.display = "none";
-        renderWrittenSection();
-      });
-    }
-
-    if (el.bankTypePills) {
-      el.bankTypePills.querySelectorAll('.bank-pill-btn').forEach(btn => {
+    // 6. Code Trace Events
+    if (el.traceChapterFilters) {
+      el.traceChapterFilters.querySelectorAll('.filter-chip').forEach(btn => {
         btn.addEventListener('click', () => {
-          el.bankTypePills.querySelectorAll('.bank-pill-btn').forEach(b => b.classList.remove('active'));
+          el.traceChapterFilters.querySelectorAll('.filter-chip').forEach(b => b.classList.remove('active'));
           btn.classList.add('active');
-          state.written.activeBankType = btn.getAttribute('data-bank-type');
-          renderWrittenSection();
+          state.trace.activeChapter = btn.getAttribute('data-trace-chapter');
+          renderTraceSection();
         });
       });
     }
 
-    document.querySelectorAll('.filter-btn').forEach(btn => {
+    document.querySelectorAll('[data-trace-diff]').forEach(btn => {
       btn.addEventListener('click', () => {
-        document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('[data-trace-diff]').forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
-        state.written.activeExamFilter = btn.getAttribute('data-filter');
-        renderWrittenSection();
+        state.trace.activeDifficulty = btn.getAttribute('data-trace-diff');
+        renderTraceSection();
       });
     });
 
-    if (el.modePracticeBtn) {
-      el.modePracticeBtn.addEventListener('click', () => {
-        state.written.mode = "practice";
-        el.modePracticeBtn.classList.add('active');
-        el.modeExamBtn.classList.remove('active');
+    if (el.traceSearchInput) {
+      el.traceSearchInput.addEventListener('input', e => {
+        state.trace.searchQuery = e.target.value;
+        renderTraceSection();
       });
     }
 
-    if (el.modeExamBtn) {
-      el.modeExamBtn.addEventListener('click', () => {
-        state.written.mode = "exam";
-        el.modeExamBtn.classList.add('active');
-        el.modePracticeBtn.classList.remove('active');
+    if (el.traceModePracticeBtn) {
+      el.traceModePracticeBtn.addEventListener('click', () => {
+        state.trace.mode = "practice";
+        el.traceModePracticeBtn.classList.add('active');
+        el.traceModeExamBtn.classList.remove('active');
+        renderTraceSection();
       });
     }
 
-    if (el.submitExamBtn) el.submitExamBtn.addEventListener('click', submitWrittenExam);
+    if (el.traceModeExamBtn) {
+      el.traceModeExamBtn.addEventListener('click', () => {
+        state.trace.mode = "exam";
+        el.traceModeExamBtn.classList.add('active');
+        el.traceModePracticeBtn.classList.remove('active');
+        renderTraceSection();
+      });
+    }
+
+    if (el.traceSubmitBtn) el.traceSubmitBtn.addEventListener('click', submitTraceExam);
+    if (el.traceResetBtn) el.traceResetBtn.addEventListener('click', resetTraceAnswers);
+
+    // 7. Code Writing Events
+    if (el.writingChapterFilters) {
+      el.writingChapterFilters.querySelectorAll('.filter-chip').forEach(btn => {
+        btn.addEventListener('click', () => {
+          el.writingChapterFilters.querySelectorAll('.filter-chip').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          state.writing.activeChapter = btn.getAttribute('data-writing-chapter');
+          renderWritingSection();
+        });
+      });
+    }
+
+    document.querySelectorAll('[data-writing-diff]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('[data-writing-diff]').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        state.writing.activeDifficulty = btn.getAttribute('data-writing-diff');
+        renderWritingSection();
+      });
+    });
+
+    if (el.writingSearchInput) {
+      el.writingSearchInput.addEventListener('input', e => {
+        state.writing.searchQuery = e.target.value;
+        renderWritingSection();
+      });
+    }
+
+    if (el.writingResetBtn) el.writingResetBtn.addEventListener('click', resetAllWriting);
+
+    // 8. Design Pattern Events
+    if (el.patternCategoryFilters) {
+      el.patternCategoryFilters.querySelectorAll('.filter-chip').forEach(btn => {
+        btn.addEventListener('click', () => {
+          el.patternCategoryFilters.querySelectorAll('.filter-chip').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          state.pattern.activeCategory = btn.getAttribute('data-pattern-cat');
+          renderPatternSection();
+        });
+      });
+    }
+
+    document.querySelectorAll('[data-pattern-diff]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('[data-pattern-diff]').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        state.pattern.activeDifficulty = btn.getAttribute('data-pattern-diff');
+        renderPatternSection();
+      });
+    });
+
+    if (el.patternSearchInput) {
+      el.patternSearchInput.addEventListener('input', e => {
+        state.pattern.searchQuery = e.target.value;
+        renderPatternSection();
+      });
+    }
+
+    if (el.patternResetBtn) el.patternResetBtn.addEventListener('click', resetAllPatterns);
   }
 
   // =========================================================================
